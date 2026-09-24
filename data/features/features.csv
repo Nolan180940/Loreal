@@ -1,0 +1,311 @@
+sample_id,op,split,y,image_path,mask_path,base_id,source,params_json,x1_copy_move,x2_ela,x3_noise,x4_seam,x5_spectrum,x6_meta
+s001,original,train,0,data\images\s001.png,data\masks\s001.png,base_043,synth,{},0.0,0.6444007858546169,0.0,0.4552602792265868,0.0,0.5
+s002,copy_move,train,1,data\images\s002.png,data\masks\s002.png,base_043,synth,"{""size"": 118, ""src"": [577, 300], ""dst"": [434, 180]}",1.0,0.6679764243614931,0.0,0.38570703766079567,0.0,0.5
+s003,splice,train,1,data\images\s003.png,data\masks\s003.png,base_043,synth,"{""seam_x"": 532, ""other"": ""base_046"", ""gain"": 0.904, ""wb"": [1.003, 0.944, 1.0], ""bias"": 1.28}",0.0,1.0,0.03775491451950678,0.0,0.0,0.5
+s004,digit_edit,train,1,data\images\s004.png,data\masks\s004.png,base_043,synth,"{""box"": [226, 468, 486, 504]}",0.229248046875,1.0,1.0,0.4978625242687818,0.0,0.5
+s005,ai_like,train,1,data\images\s005.png,data\masks\s005.png,base_043,ai_like,{},0.0,1.0,0.008304313146051073,0.7625374408915414,0.0,0.5
+s006,neg_warm_filter,train,0,data\images\s006.png,data\masks\s006.png,base_043,synth,"{""kind"": ""warm_filter""}",0.0,1.0,0.0,0.40767410175989716,0.0,0.5
+s007,neg_jpeg_q90,train,0,data\images\s007.png,data\masks\s007.png,base_043,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s008,original,train,0,data\images\s008.png,data\masks\s008.png,base_046,synth,{},0.0,0.06286836935166994,0.11446464000004261,0.0,0.0,0.5
+s009,copy_move,train,1,data\images\s009.png,data\masks\s009.png,base_046,synth,"{""size"": 110, ""src"": [559, 60], ""dst"": [765, 133]}",1.0,0.07858546168958742,0.11446464000004261,0.0,0.0,0.5
+s010,splice,train,1,data\images\s010.png,data\masks\s010.png,base_046,synth,"{""seam_x"": 460, ""other"": ""base_019"", ""gain"": 0.851, ""wb"": [1.012, 1.026, 1.056], ""bias"": -5.4}",0.0,1.0,1.0,0.0,0.0,0.5
+s011,digit_edit,train,1,data\images\s011.png,data\masks\s011.png,base_046,synth,"{""box"": [391, 39, 651, 75]}",0.2236328125,1.0,1.0,0.0,0.0,0.5
+s012,neg_rescale,train,0,data\images\s012.png,data\masks\s012.png,base_046,synth,"{""kind"": ""rescale""}",0.0,0.3379174852652259,0.4616684766776168,0.0,0.0,0.5
+s013,neg_sharpen,train,0,data\images\s013.png,data\masks\s013.png,base_046,synth,"{""kind"": ""sharpen""}",0.0,0.550098231827112,0.0,0.0,0.0,0.5
+s014,original,train,0,data\images\s014.png,data\masks\s014.png,base_019,synth,{},0.0,0.11787819253438114,0.1485575740686325,0.0,0.0,0.5
+s015,copy_move,train,1,data\images\s015.png,data\masks\s015.png,base_019,synth,"{""size"": 134, ""src"": [63, 369], ""dst"": [0, 456]}",1.0,0.11787819253438114,0.1485575740686325,0.0,0.0,0.5
+s016,splice,train,1,data\images\s016.png,data\masks\s016.png,base_019,synth,"{""seam_x"": 363, ""other"": ""base_005"", ""gain"": 0.979, ""wb"": [0.952, 1.034, 1.057], ""bias"": -1.12}",0.0,0.5579567779960707,0.1485575740686325,0.0,0.0,0.5
+s017,digit_edit,train,1,data\images\s017.png,data\masks\s017.png,base_019,synth,"{""box"": [102, 154, 362, 190]}",0.223388671875,1.0,0.027897836597325157,0.0,0.0,0.5
+s018,neg_jpeg_q90,train,0,data\images\s018.png,data\masks\s018.png,base_019,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s019,neg_rescale,train,0,data\images\s019.png,data\masks\s019.png,base_019,synth,"{""kind"": ""rescale""}",0.0,0.2829076620825147,0.39793891106161317,0.0,0.0,0.5
+s020,original,train,0,data\images\s020.png,data\masks\s020.png,base_005,synth,{},0.0,0.08644400785854617,0.0,0.16108546946579536,0.0,0.5
+s021,copy_move,train,1,data\images\s021.png,data\masks\s021.png,base_005,synth,"{""size"": 143, ""src"": [639, 114], ""dst"": [506, 16]}",1.0,0.08644400785854617,0.0,0.1402469244784288,0.0,0.5
+s022,splice,train,1,data\images\s022.png,data\masks\s022.png,base_005,synth,"{""seam_x"": 475, ""other"": ""base_038"", ""gain"": 0.948, ""wb"": [0.996, 1.06, 0.98], ""bias"": 11.91}",0.0,1.0,0.012019510131403434,0.0,0.0,0.5
+s023,digit_edit,train,1,data\images\s023.png,data\masks\s023.png,base_005,synth,"{""box"": [251, 450, 511, 486]}",0.22265625,1.0,0.10164339986215273,0.24870899719659137,0.0,0.5
+s024,neg_warm_filter,train,0,data\images\s024.png,data\masks\s024.png,base_005,synth,"{""kind"": ""warm_filter""}",0.0,0.4950884086444008,0.0,0.16636241330205975,0.0,0.5
+s025,neg_blur_beauty,train,0,data\images\s025.png,data\masks\s025.png,base_005,synth,"{""kind"": ""blur_beauty""}",0.0,0.6051080550098232,0.003405301958834273,0.07470172735430251,0.0,0.5
+s026,original,train,0,data\images\s026.png,data\masks\s026.png,base_038,synth,{},0.0,0.13359528487229863,0.0,0.0,0.0,0.5
+s027,copy_move,train,1,data\images\s027.png,data\masks\s027.png,base_038,synth,"{""size"": 80, ""src"": [864, 124], ""dst"": [710, 297]}",0.0,0.13359528487229863,0.0,0.0,0.0,0.5
+s028,splice,train,1,data\images\s028.png,data\masks\s028.png,base_038,synth,"{""seam_x"": 569, ""other"": ""base_031"", ""gain"": 1.014, ""wb"": [0.984, 0.965, 1.037], ""bias"": 8.48}",0.0,1.0,1.0,0.1608770609555056,0.0,0.5
+s029,digit_edit,train,1,data\images\s029.png,data\masks\s029.png,base_038,synth,"{""box"": [274, 187, 534, 223]}",0.22265625,1.0,0.0,0.0,0.0,0.5
+s030,neg_sharpen,train,0,data\images\s030.png,data\masks\s030.png,base_038,synth,"{""kind"": ""sharpen""}",0.0,0.6994106090373281,0.0,0.0,0.0,0.5
+s031,neg_blur_beauty,train,0,data\images\s031.png,data\masks\s031.png,base_038,synth,"{""kind"": ""blur_beauty""}",0.0,0.5972495088408645,0.0,0.0,0.0,0.5
+s032,original,train,0,data\images\s032.png,data\masks\s032.png,base_031,synth,{},0.0,0.275049115913556,0.25078574238047024,0.10363044281164406,0.0,0.5
+s033,copy_move,train,1,data\images\s033.png,data\masks\s033.png,base_031,synth,"{""size"": 133, ""src"": [400, 242], ""dst"": [124, 135]}",1.0,0.4086444007858546,0.25078574238047024,0.0,0.0,0.5
+s034,splice,train,1,data\images\s034.png,data\masks\s034.png,base_031,synth,"{""seam_x"": 456, ""other"": ""base_045"", ""gain"": 0.865, ""wb"": [0.974, 0.99, 0.978], ""bias"": 7.93}",0.0,0.5422396856581533,0.09872061811828199,0.0,0.0,0.5
+s035,digit_edit,train,1,data\images\s035.png,data\masks\s035.png,base_031,synth,"{""box"": [241, 213, 501, 249]}",0.229248046875,1.0,0.25078574238047024,0.09373680367690039,0.0,0.5
+s036,ai_like,train,1,data\images\s036.png,data\masks\s036.png,base_031,ai_like,{},0.0,0.888015717092338,0.0,0.017299883784727233,0.0,0.5
+s037,neg_jpeg_q90,train,0,data\images\s037.png,data\masks\s037.png,base_031,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s038,neg_warm_filter,train,0,data\images\s038.png,data\masks\s038.png,base_031,synth,"{""kind"": ""warm_filter""}",0.0,1.0,0.01869530832452326,0.019755241586453406,0.0,0.5
+s039,original,train,0,data\images\s039.png,data\masks\s039.png,base_045,synth,{},0.0,0.0,0.18156104764940956,0.0,0.0,0.5
+s040,copy_move,train,1,data\images\s040.png,data\masks\s040.png,base_045,synth,"{""size"": 150, ""src"": [621, 22], ""dst"": [334, 227]}",1.0,0.03929273084479371,0.18156104764940956,0.0,0.0,0.5
+s041,splice,train,1,data\images\s041.png,data\masks\s041.png,base_045,synth,"{""seam_x"": 528, ""other"": ""base_020"", ""gain"": 0.833, ""wb"": [0.959, 0.995, 0.956], ""bias"": 4.18}",0.0,0.5108055009823183,0.18156104764940956,0.4358088182662109,0.0,0.5
+s042,digit_edit,train,1,data\images\s042.png,data\masks\s042.png,base_045,synth,"{""box"": [426, 38, 686, 74]}",0.217529296875,1.0,1.0,0.0,0.0,0.5
+s043,neg_rescale,train,0,data\images\s043.png,data\masks\s043.png,base_045,synth,"{""kind"": ""rescale""}",0.0,0.0,0.44886886251495856,0.0,0.0,0.5
+s044,neg_jpeg_q70,train,0,data\images\s044.png,data\masks\s044.png,base_045,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s045,original,train,0,data\images\s045.png,data\masks\s045.png,base_020,synth,{},0.0,0.2043222003929273,0.0,0.26932616218962524,0.0,0.5
+s046,copy_move,train,1,data\images\s046.png,data\masks\s046.png,base_020,synth,"{""size"": 128, ""src"": [531, 17], ""dst"": [750, 0]}",0.0,0.2043222003929273,0.0,0.3374381277506464,0.0,0.5
+s047,splice,train,1,data\images\s047.png,data\masks\s047.png,base_020,synth,"{""seam_x"": 394, ""other"": ""base_049"", ""gain"": 0.999, ""wb"": [0.962, 0.988, 0.975], ""bias"": 8.96}",0.0,1.0,1.0,0.0,0.0,0.5
+s048,digit_edit,train,1,data\images\s048.png,data\masks\s048.png,base_020,synth,"{""box"": [599, 618, 859, 654]}",0.2275390625,1.0,0.03253699817589891,0.31691853714313545,0.0,0.5
+s049,neg_jpeg_q90,train,0,data\images\s049.png,data\masks\s049.png,base_020,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s050,neg_blur_beauty,train,0,data\images\s050.png,data\masks\s050.png,base_020,synth,"{""kind"": ""blur_beauty""}",0.0,0.45579567779960706,0.15747870473583575,0.37418490076826233,0.0,0.5
+s051,original,train,0,data\images\s051.png,data\masks\s051.png,base_049,synth,{},0.0,0.0,0.0,0.0,0.0,0.5
+s052,copy_move,train,1,data\images\s052.png,data\masks\s052.png,base_049,synth,"{""size"": 136, ""src"": [616, 172], ""dst"": [457, 328]}",1.0,0.0,0.0,0.0,0.0,0.5
+s053,splice,train,1,data\images\s053.png,data\masks\s053.png,base_049,synth,"{""seam_x"": 411, ""other"": ""base_004"", ""gain"": 1.045, ""wb"": [0.97, 1.039, 1.049], ""bias"": -7.31}",0.0,1.0,0.0,0.0,0.0,0.5
+s054,digit_edit,train,1,data\images\s054.png,data\masks\s054.png,base_049,synth,"{""box"": [64, 353, 324, 389]}",0.22265625,1.0,0.0,0.0,0.0,0.5
+s055,neg_warm_filter,train,0,data\images\s055.png,data\masks\s055.png,base_049,synth,"{""kind"": ""warm_filter""}",0.0,0.275049115913556,0.0,0.0,0.0,0.5
+s056,neg_jpeg_q90,train,0,data\images\s056.png,data\masks\s056.png,base_049,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s057,original,train,0,data\images\s057.png,data\masks\s057.png,base_004,synth,{},0.0,0.0,0.20802541895502757,0.0,0.0,0.5
+s058,copy_move,train,1,data\images\s058.png,data\masks\s058.png,base_004,synth,"{""size"": 152, ""src"": [464, 266], ""dst"": [194, 192]}",1.0,0.0,0.0,0.0,0.0,0.5
+s059,splice,train,1,data\images\s059.png,data\masks\s059.png,base_004,synth,"{""seam_x"": 368, ""other"": ""base_012"", ""gain"": 0.856, ""wb"": [0.963, 0.943, 0.959], ""bias"": -10.0}",0.0,1.0,1.0,0.0,0.0,0.5
+s060,digit_edit,train,1,data\images\s060.png,data\masks\s060.png,base_004,synth,"{""box"": [311, 182, 571, 218]}",0.224853515625,1.0,1.0,0.0,0.0,0.5
+s061,neg_warm_filter,train,0,data\images\s061.png,data\masks\s061.png,base_004,synth,"{""kind"": ""warm_filter""}",0.0,0.047151277013752456,0.0,0.0,0.0,0.5
+s062,neg_blur_beauty,train,0,data\images\s062.png,data\masks\s062.png,base_004,synth,"{""kind"": ""blur_beauty""}",0.0,0.6051080550098232,0.0,0.0,0.0,0.5
+s063,original,train,0,data\images\s063.png,data\masks\s063.png,base_012,synth,{},0.0,0.0,0.0,0.0,0.0,0.5
+s064,copy_move,train,1,data\images\s064.png,data\masks\s064.png,base_012,synth,"{""size"": 86, ""src"": [726, 253], ""dst"": [444, 418]}",1.0,0.0,0.0,0.0,0.0,0.5
+s065,splice,train,1,data\images\s065.png,data\masks\s065.png,base_012,synth,"{""seam_x"": 409, ""other"": ""base_029"", ""gain"": 1.068, ""wb"": [1.053, 1.016, 0.95], ""bias"": 1.06}",0.0,1.0,0.11680793918163586,0.1861452236159323,0.0,0.5
+s066,digit_edit,train,1,data\images\s066.png,data\masks\s066.png,base_012,synth,"{""box"": [512, 304, 772, 340]}",0.217529296875,1.0,0.016119711858500394,0.0,0.0,0.5
+s067,ai_like,train,1,data\images\s067.png,data\masks\s067.png,base_012,ai_like,{},0.0,0.3143418467583497,0.019755994828464112,0.0,0.0,0.5
+s068,neg_blur_beauty,train,0,data\images\s068.png,data\masks\s068.png,base_012,synth,"{""kind"": ""blur_beauty""}",0.0,0.6129666011787819,0.07743909892479646,0.0,0.0,0.5
+s069,neg_jpeg_q70,train,0,data\images\s069.png,data\masks\s069.png,base_012,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s070,original,train,0,data\images\s070.png,data\masks\s070.png,base_029,synth,{},0.0,0.015717092337917484,0.00593673672783958,0.35997190157482345,0.0,0.5
+s071,copy_move,train,1,data\images\s071.png,data\masks\s071.png,base_029,synth,"{""size"": 120, ""src"": [187, 42], ""dst"": [0, 0]}",1.0,0.015717092337917484,0.060898736894991735,0.3576479881447323,0.0,0.5
+s072,splice,train,1,data\images\s072.png,data\masks\s072.png,base_029,synth,"{""seam_x"": 369, ""other"": ""base_024"", ""gain"": 0.928, ""wb"": [1.004, 1.011, 1.019], ""bias"": 11.27}",0.0,1.0,1.0,0.0,0.0,0.5
+s073,digit_edit,train,1,data\images\s073.png,data\masks\s073.png,base_029,synth,"{""box"": [663, 691, 923, 727]}",0.228271484375,1.0,1.0,0.3731943117701839,0.0,0.5
+s074,neg_jpeg_q90,train,0,data\images\s074.png,data\masks\s074.png,base_029,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s075,neg_warm_filter,train,0,data\images\s075.png,data\masks\s075.png,base_029,synth,"{""kind"": ""warm_filter""}",0.0,0.6994106090373281,0.011534511246971049,0.3208584092297747,0.0,0.5
+s076,original,train,0,data\images\s076.png,data\masks\s076.png,base_024,synth,{},0.0,0.007858546168958742,0.21082795819718952,0.26549236801693704,0.0,0.5
+s077,copy_move,train,1,data\images\s077.png,data\masks\s077.png,base_024,synth,"{""size"": 105, ""src"": [719, 14], ""dst"": [919, 0]}",0.0,0.007858546168958742,0.21082795819718952,0.2843322955684891,0.0,0.5
+s078,splice,train,1,data\images\s078.png,data\masks\s078.png,base_024,synth,"{""seam_x"": 598, ""other"": ""base_039"", ""gain"": 0.95, ""wb"": [0.984, 1.059, 0.998], ""bias"": -8.31}",0.0,1.0,1.0,0.875441526256405,0.0,0.5
+s079,digit_edit,train,1,data\images\s079.png,data\masks\s079.png,base_024,synth,"{""box"": [164, 328, 424, 364]}",0.22265625,1.0,1.0,0.32249310447438484,0.0,0.5
+s080,neg_jpeg_q90,train,0,data\images\s080.png,data\masks\s080.png,base_024,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s081,neg_rescale,train,0,data\images\s081.png,data\masks\s081.png,base_024,synth,"{""kind"": ""rescale""}",0.0,0.40078585461689586,0.3482404965150906,0.0,0.0,0.5
+s082,original,train,0,data\images\s082.png,data\masks\s082.png,base_039,synth,{},0.0,0.7858546168958742,0.0,0.2381786023229403,0.0,0.5
+s083,copy_move,train,1,data\images\s083.png,data\masks\s083.png,base_039,synth,"{""size"": 66, ""src"": [223, 684], ""dst"": [393, 524]}",0.0,0.7858546168958742,0.0,0.22667491376326807,0.0,0.5
+s084,splice,train,1,data\images\s084.png,data\masks\s084.png,base_039,synth,"{""seam_x"": 668, ""other"": ""base_013"", ""gain"": 1.137, ""wb"": [0.981, 0.979, 0.971], ""bias"": 2.88}",0.123046875,1.0,1.0,0.0,0.0,0.5
+s085,digit_edit,train,1,data\images\s085.png,data\masks\s085.png,base_039,synth,"{""box"": [253, 122, 513, 158]}",0.223388671875,1.0,0.09627464753985569,0.30812343857922747,0.0,0.5
+s086,neg_sharpen,train,0,data\images\s086.png,data\masks\s086.png,base_039,synth,"{""kind"": ""sharpen""}",0.0,0.6129666011787819,0.0,0.0,0.0,0.5
+s087,neg_rescale,train,0,data\images\s087.png,data\masks\s087.png,base_039,synth,"{""kind"": ""rescale""}",0.0,1.0,0.1221094742299556,0.0,0.0,0.5
+s088,original,train,0,data\images\s088.png,data\masks\s088.png,base_013,synth,{},0.0,0.0,0.045428106849152654,0.23502638757290784,0.0,0.5
+s089,copy_move,train,1,data\images\s089.png,data\masks\s089.png,base_013,synth,"{""size"": 130, ""src"": [696, 477], ""dst"": [835, 584]}",1.0,0.0,0.045428106849152654,0.1448839417685753,0.0,0.5
+s090,splice,train,1,data\images\s090.png,data\masks\s090.png,base_013,synth,"{""seam_x"": 414, ""other"": ""base_048"", ""gain"": 0.829, ""wb"": [0.999, 1.028, 1.005], ""bias"": 8.71}",0.0,0.2593320235756385,0.058572047086202624,0.6726039801079005,0.0,0.5
+s091,digit_edit,train,1,data\images\s091.png,data\masks\s091.png,base_013,synth,"{""box"": [564, 473, 824, 509]}",0.2275390625,1.0,1.0,0.2575506489754534,0.0,0.5
+s092,neg_jpeg_q70,train,0,data\images\s092.png,data\masks\s092.png,base_013,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s093,neg_rescale,train,0,data\images\s093.png,data\masks\s093.png,base_013,synth,"{""kind"": ""rescale""}",0.0,0.1807465618860511,0.17514717848562814,0.0,0.0,0.5
+s094,original,train,0,data\images\s094.png,data\masks\s094.png,base_048,synth,{},0.0,0.0,0.12029528364429491,0.39882841440822175,0.0,0.5
+s095,copy_move,train,1,data\images\s095.png,data\masks\s095.png,base_048,synth,"{""size"": 136, ""src"": [322, 152], ""dst"": [406, 363]}",1.0,0.10216110019646366,0.12029528364429491,0.30723056809427246,0.0,0.5
+s096,splice,train,1,data\images\s096.png,data\masks\s096.png,base_048,synth,"{""seam_x"": 421, ""other"": ""base_016"", ""gain"": 1.112, ""wb"": [0.953, 0.984, 0.97], ""bias"": -11.14}",0.0,1.0,0.0,0.0,0.0,0.5
+s097,digit_edit,train,1,data\images\s097.png,data\masks\s097.png,base_048,synth,"{""box"": [473, 595, 733, 631]}",0.22265625,1.0,1.0,0.41818359813147904,0.0,0.5
+s098,ai_like,train,1,data\images\s098.png,data\masks\s098.png,base_048,ai_like,{},0.0,0.6286836935166994,0.049958280790531225,0.34657250268607726,0.0,0.5
+s099,neg_jpeg_q90,train,0,data\images\s099.png,data\masks\s099.png,base_048,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s100,neg_warm_filter,train,0,data\images\s100.png,data\masks\s100.png,base_048,synth,"{""kind"": ""warm_filter""}",0.0,0.6286836935166994,0.0,0.41581053718962524,0.0,0.5
+s101,original,train,0,data\images\s101.png,data\masks\s101.png,base_016,synth,{},0.0,0.0,0.04444282533817704,0.0,0.0,0.5
+s102,copy_move,train,1,data\images\s102.png,data\masks\s102.png,base_016,synth,"{""size"": 137, ""src"": [481, 600], ""dst"": [560, 530]}",1.0,0.0,0.04444282533817704,0.0,0.0,0.5
+s103,splice,train,1,data\images\s103.png,data\masks\s103.png,base_016,synth,"{""seam_x"": 467, ""other"": ""base_007"", ""gain"": 1.026, ""wb"": [0.958, 1.022, 1.041], ""bias"": 0.9}",0.0,1.0,0.022270430333284907,0.0,0.0,0.5
+s104,digit_edit,train,1,data\images\s104.png,data\masks\s104.png,base_016,synth,"{""box"": [214, 316, 474, 352]}",0.22265625,1.0,0.04444282533817704,0.004498182055159135,0.0,0.5
+s105,neg_jpeg_q90,train,0,data\images\s105.png,data\masks\s105.png,base_016,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s106,neg_warm_filter,train,0,data\images\s106.png,data\masks\s106.png,base_016,synth,"{""kind"": ""warm_filter""}",0.0,0.3929273084479371,0.0,0.0,0.0,0.5
+s107,original,train,0,data\images\s107.png,data\masks\s107.png,base_007,synth,{},0.0,0.0,0.0,0.26892404618429444,0.0,0.5
+s108,copy_move,train,1,data\images\s108.png,data\masks\s108.png,base_007,synth,"{""size"": 108, ""src"": [19, 479], ""dst"": [169, 660]}",1.0,0.0,0.0,0.1911928604398378,0.0,0.5
+s109,splice,train,1,data\images\s109.png,data\masks\s109.png,base_007,synth,"{""seam_x"": 594, ""other"": ""base_014"", ""gain"": 1.024, ""wb"": [1.026, 1.02, 1.0], ""bias"": 2.33}",0.0,1.0,1.0,0.530180111996139,0.0,0.5
+s110,digit_edit,train,1,data\images\s110.png,data\masks\s110.png,base_007,synth,"{""box"": [325, 689, 585, 725]}",0.22265625,1.0,0.2247258184000984,0.23754991772965964,0.0,0.5
+s111,neg_jpeg_q70,train,0,data\images\s111.png,data\masks\s111.png,base_007,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s112,neg_blur_beauty,train,0,data\images\s112.png,data\masks\s112.png,base_007,synth,"{""kind"": ""blur_beauty""}",0.0,0.5658153241650294,0.0,0.12203582564775792,0.0,0.5
+s113,original,train,0,data\images\s113.png,data\masks\s113.png,base_014,synth,{},0.0,0.007858546168958742,0.0,0.325803859584942,0.0,0.5
+s114,copy_move,train,1,data\images\s114.png,data\masks\s114.png,base_014,synth,"{""size"": 128, ""src"": [249, 263], ""dst"": [387, 371]}",1.0,0.09430255402750491,0.0,0.3248258096881051,0.0,0.5
+s115,splice,train,1,data\images\s115.png,data\masks\s115.png,base_014,synth,"{""seam_x"": 580, ""other"": ""base_033"", ""gain"": 1.132, ""wb"": [1.002, 1.029, 1.051], ""bias"": 8.99}",0.23046875,1.0,0.07437023787707718,0.0,0.0,0.5
+s116,digit_edit,train,1,data\images\s116.png,data\masks\s116.png,base_014,synth,"{""box"": [405, 139, 665, 175]}",0.223388671875,1.0,0.22990430372877063,0.3198845390333516,0.0,0.5
+s117,neg_sharpen,train,0,data\images\s117.png,data\masks\s117.png,base_014,synth,"{""kind"": ""sharpen""}",0.0,0.7387033398821218,0.02664922244804178,0.0,0.0,0.5
+s118,neg_rescale,train,0,data\images\s118.png,data\masks\s118.png,base_014,synth,"{""kind"": ""rescale""}",0.0,0.17288801571709234,0.4917106992316591,0.0,0.0,0.5
+s119,original,train,0,data\images\s119.png,data\masks\s119.png,base_033,synth,{},0.0,0.14145383104125736,0.0,0.0,0.0,0.5
+s120,copy_move,train,1,data\images\s120.png,data\masks\s120.png,base_033,synth,"{""size"": 103, ""src"": [765, 437], ""dst"": [921, 362]}",0.0,0.14145383104125736,0.0,0.0,0.0,0.5
+s121,splice,train,1,data\images\s121.png,data\masks\s121.png,base_033,synth,"{""seam_x"": 484, ""other"": ""base_025"", ""gain"": 0.988, ""wb"": [0.978, 1.01, 0.958], ""bias"": 8.55}",0.0,0.762278978388998,0.0,0.0,0.0,0.5
+s122,digit_edit,train,1,data\images\s122.png,data\masks\s122.png,base_033,synth,"{""box"": [608, 364, 868, 400]}",0.224365234375,1.0,0.0937955621868559,0.01467114047962723,0.0,0.5
+s123,neg_jpeg_q70,train,0,data\images\s123.png,data\masks\s123.png,base_033,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s124,neg_jpeg_q90,train,0,data\images\s124.png,data\masks\s124.png,base_033,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s125,original,train,0,data\images\s125.png,data\masks\s125.png,base_025,synth,{},0.0,0.0,0.21594120170154507,0.0,0.0,0.5
+s126,copy_move,train,1,data\images\s126.png,data\masks\s126.png,base_025,synth,"{""size"": 142, ""src"": [495, 370], ""dst"": [382, 559]}",1.0,0.03929273084479371,0.21594120170154507,0.0,0.0,0.5
+s127,splice,train,1,data\images\s127.png,data\masks\s127.png,base_025,synth,"{""seam_x"": 385, ""other"": ""base_010"", ""gain"": 1.114, ""wb"": [1.049, 0.985, 1.033], ""bias"": 0.54}",0.229736328125,1.0,0.05719692618036571,0.0,0.0,0.5
+s128,digit_edit,train,1,data\images\s128.png,data\masks\s128.png,base_025,synth,"{""box"": [563, 569, 823, 605]}",0.228271484375,1.0,1.0,0.0,0.0,0.5
+s129,ai_like,train,1,data\images\s129.png,data\masks\s129.png,base_025,ai_like,{},0.0,0.6994106090373281,0.0,0.0,0.0,0.5
+s130,neg_rescale,train,0,data\images\s130.png,data\masks\s130.png,base_025,synth,"{""kind"": ""rescale""}",0.0,0.06286836935166994,0.35382296129935253,0.0,0.0,0.5
+s131,neg_blur_beauty,train,0,data\images\s131.png,data\masks\s131.png,base_025,synth,"{""kind"": ""blur_beauty""}",0.0,0.8487229862475442,0.08118099047332542,0.0,0.0,0.5
+s132,original,train,0,data\images\s132.png,data\masks\s132.png,base_010,synth,{},0.0,0.09430255402750491,0.16352404856688324,0.2600684140281861,0.0,0.5
+s133,copy_move,train,1,data\images\s133.png,data\masks\s133.png,base_010,synth,"{""size"": 77, ""src"": [621, 207], ""dst"": [406, 82]}",1.0,0.09430255402750491,0.16352404856688324,0.2519608041185534,0.0,0.5
+s134,splice,train,1,data\images\s134.png,data\masks\s134.png,base_010,synth,"{""seam_x"": 410, ""other"": ""base_032"", ""gain"": 0.96, ""wb"": [0.975, 0.987, 0.995], ""bias"": 9.64}",0.0,0.550098231827112,0.027454452119558524,0.0,0.0,0.5
+s135,digit_edit,train,1,data\images\s135.png,data\masks\s135.png,base_010,synth,"{""box"": [468, 346, 728, 382]}",0.22412109375,1.0,0.16352404856688324,0.2891323211747751,0.0,0.5
+s136,neg_blur_beauty,train,0,data\images\s136.png,data\masks\s136.png,base_010,synth,"{""kind"": ""blur_beauty""}",0.0,0.8015717092337917,0.2464519697237678,0.17672778207316464,0.0,0.5
+s137,neg_rescale,train,0,data\images\s137.png,data\masks\s137.png,base_010,synth,"{""kind"": ""rescale""}",0.0,0.6994106090373281,0.5729942664881759,0.0,0.0,0.5
+s138,original,train,0,data\images\s138.png,data\masks\s138.png,base_032,synth,{},0.0,0.08644400785854617,0.056823202295893396,0.0,0.0,0.5
+s139,copy_move,train,1,data\images\s139.png,data\masks\s139.png,base_032,synth,"{""size"": 68, ""src"": [484, 451], ""dst"": [693, 314]}",0.0,0.08644400785854617,0.056823202295893396,0.0,0.0,0.5
+s140,splice,train,1,data\images\s140.png,data\masks\s140.png,base_032,synth,"{""seam_x"": 375, ""other"": ""base_011"", ""gain"": 0.975, ""wb"": [0.975, 0.987, 0.982], ""bias"": 10.66}",0.0,1.0,1.0,0.0,0.0,0.5
+s141,digit_edit,train,1,data\images\s141.png,data\masks\s141.png,base_032,synth,"{""box"": [436, 262, 696, 298]}",0.22412109375,1.0,0.5618098943361505,0.0,0.0,0.5
+s142,neg_sharpen,train,0,data\images\s142.png,data\masks\s142.png,base_032,synth,"{""kind"": ""sharpen""}",0.0,0.4715127701375246,0.0,0.0,0.0,0.5
+s143,neg_warm_filter,train,0,data\images\s143.png,data\masks\s143.png,base_032,synth,"{""kind"": ""warm_filter""}",0.0,0.6758349705304518,0.04914699480623926,0.0,0.0,0.5
+s144,original,train,0,data\images\s144.png,data\masks\s144.png,base_011,synth,{},0.0,0.0,0.0,0.0,0.0,0.5
+s145,copy_move,train,1,data\images\s145.png,data\masks\s145.png,base_011,synth,"{""size"": 140, ""src"": [535, 350], ""dst"": [283, 180]}",1.0,0.0,0.0,0.0,0.0,0.5
+s146,splice,train,1,data\images\s146.png,data\masks\s146.png,base_011,synth,"{""seam_x"": 425, ""other"": ""base_018"", ""gain"": 1.062, ""wb"": [1.05, 0.975, 0.971], ""bias"": -11.54}",0.0,1.0,0.0,0.0,0.0,0.5
+s147,digit_edit,train,1,data\images\s147.png,data\masks\s147.png,base_011,synth,"{""box"": [130, 322, 390, 358]}",0.22265625,1.0,1.0,0.0,0.0,0.5
+s148,neg_jpeg_q90,train,0,data\images\s148.png,data\masks\s148.png,base_011,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s149,neg_jpeg_q70,train,0,data\images\s149.png,data\masks\s149.png,base_011,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s150,original,train,0,data\images\s150.png,data\masks\s150.png,base_018,synth,{},0.0,0.0,0.0,0.36035311907808515,0.0,0.5
+s151,copy_move,train,1,data\images\s151.png,data\masks\s151.png,base_018,synth,"{""size"": 133, ""src"": [441, 36], ""dst"": [703, 0]}",1.0,0.0,0.0,0.326462234463921,0.0,0.5
+s152,splice,train,1,data\images\s152.png,data\masks\s152.png,base_018,synth,"{""seam_x"": 666, ""other"": ""base_002"", ""gain"": 0.87, ""wb"": [0.993, 1.043, 1.041], ""bias"": -1.03}",0.0,1.0,0.02732389049264905,0.0,0.0,0.5
+s153,digit_edit,train,1,data\images\s153.png,data\masks\s153.png,base_018,synth,"{""box"": [94, 295, 354, 331]}",0.2275390625,1.0,0.08669298888877357,0.36458989402170705,0.0,0.5
+s154,neg_sharpen,train,0,data\images\s154.png,data\masks\s154.png,base_018,synth,"{""kind"": ""sharpen""}",0.0,0.3379174852652259,0.0,0.0,0.0,0.5
+s155,neg_jpeg_q90,train,0,data\images\s155.png,data\masks\s155.png,base_018,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s156,original,train,0,data\images\s156.png,data\masks\s156.png,base_002,synth,{},0.0,0.2593320235756385,0.024376623570090534,0.0,0.0,0.5
+s157,copy_move,train,1,data\images\s157.png,data\masks\s157.png,base_002,synth,"{""size"": 82, ""src"": [777, 246], ""dst"": [698, 54]}",0.0,0.2593320235756385,0.024376623570090534,0.01561762643195969,0.0,0.5
+s158,splice,train,1,data\images\s158.png,data\masks\s158.png,base_002,synth,"{""seam_x"": 489, ""other"": ""base_001"", ""gain"": 0.881, ""wb"": [1.003, 0.946, 1.003], ""bias"": 9.95}",0.0,1.0,1.0,0.0,0.0,0.5
+s159,digit_edit,train,1,data\images\s159.png,data\masks\s159.png,base_002,synth,"{""box"": [359, 306, 619, 342]}",0.2333984375,1.0,1.0,0.005395952878530368,0.0,0.5
+s160,ai_like,train,1,data\images\s160.png,data\masks\s160.png,base_002,ai_like,{},0.0,1.0,0.0,0.07738696867878951,0.0,0.5
+s161,neg_jpeg_q70,train,0,data\images\s161.png,data\masks\s161.png,base_002,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s162,neg_rescale,train,0,data\images\s162.png,data\masks\s162.png,base_002,synth,"{""kind"": ""rescale""}",0.0,0.34577603143418467,0.17750342206104996,0.0,0.0,0.5
+s163,original,train,0,data\images\s163.png,data\masks\s163.png,base_001,synth,{},0.0,0.0,0.7297967269785173,0.0,0.0,0.5
+s164,copy_move,train,1,data\images\s164.png,data\masks\s164.png,base_001,synth,"{""size"": 114, ""src"": [601, 564], ""dst"": [531, 450]}",1.0,0.007858546168958742,0.7297967269785173,0.0,0.0,0.5
+s165,splice,train,1,data\images\s165.png,data\masks\s165.png,base_001,synth,"{""seam_x"": 576, ""other"": ""base_026"", ""gain"": 0.945, ""wb"": [1.03, 0.991, 0.988], ""bias"": -1.69}",0.0,1.0,0.0,0.1590021050009003,0.0,0.5
+s166,digit_edit,train,1,data\images\s166.png,data\masks\s166.png,base_001,synth,"{""box"": [289, 64, 549, 100]}",0.217529296875,1.0,0.7297967269785173,0.0,0.0,0.5
+s167,neg_blur_beauty,train,0,data\images\s167.png,data\masks\s167.png,base_001,synth,"{""kind"": ""blur_beauty""}",0.0,0.6051080550098232,0.046668091402550314,0.0,0.0,0.5
+s168,neg_warm_filter,train,0,data\images\s168.png,data\masks\s168.png,base_001,synth,"{""kind"": ""warm_filter""}",0.0,0.1650294695481336,0.0,0.0,0.0,0.5
+s169,original,train,0,data\images\s169.png,data\masks\s169.png,base_026,synth,{},0.0,0.0,0.0,0.0,0.0,0.5
+s170,copy_move,train,1,data\images\s170.png,data\masks\s170.png,base_026,synth,"{""size"": 153, ""src"": [323, 63], ""dst"": [527, 0]}",1.0,0.1100196463654224,0.0,0.0,0.0,0.5
+s171,splice,train,1,data\images\s171.png,data\masks\s171.png,base_026,synth,"{""seam_x"": 513, ""other"": ""base_030"", ""gain"": 0.886, ""wb"": [1.031, 1.038, 0.995], ""bias"": 1.04}",0.0,0.35363457760314343,0.0,0.0,0.0,0.5
+s172,digit_edit,train,1,data\images\s172.png,data\masks\s172.png,base_026,synth,"{""box"": [621, 428, 881, 464]}",0.223388671875,1.0,0.0,0.0,0.0,0.5
+s173,neg_jpeg_q70,train,0,data\images\s173.png,data\masks\s173.png,base_026,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s174,neg_blur_beauty,train,0,data\images\s174.png,data\masks\s174.png,base_026,synth,"{""kind"": ""blur_beauty""}",0.0,0.0550098231827112,0.26814469435975935,0.0,0.0,0.5
+s175,original,train,0,data\images\s175.png,data\masks\s175.png,base_030,synth,{},0.0,0.0,0.0,0.0,0.0,0.5
+s176,copy_move,train,1,data\images\s176.png,data\masks\s176.png,base_030,synth,"{""size"": 103, ""src"": [132, 378], ""dst"": [406, 467]}",1.0,0.07072691552062868,0.0,0.0,0.0,0.5
+s177,splice,train,1,data\images\s177.png,data\masks\s177.png,base_030,synth,"{""seam_x"": 344, ""other"": ""base_006"", ""gain"": 1.153, ""wb"": [1.044, 0.998, 0.955], ""bias"": -3.43}",0.216064453125,1.0,1.0,0.0,0.0,0.5
+s178,digit_edit,train,1,data\images\s178.png,data\masks\s178.png,base_030,synth,"{""box"": [468, 383, 728, 419]}",0.223388671875,1.0,0.009005779724869701,0.0,0.0,0.5
+s179,neg_blur_beauty,train,0,data\images\s179.png,data\masks\s179.png,base_030,synth,"{""kind"": ""blur_beauty""}",0.0,0.5579567779960707,0.03445521178184463,0.0,0.0,0.5
+s180,neg_jpeg_q70,train,0,data\images\s180.png,data\masks\s180.png,base_030,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s181,original,train,0,data\images\s181.png,data\masks\s181.png,base_006,synth,{},0.0,0.0,0.0,0.1650995672666803,0.0,0.5
+s182,copy_move,train,1,data\images\s182.png,data\masks\s182.png,base_006,synth,"{""size"": 82, ""src"": [835, 141], ""dst"": [942, 70]}",0.0,0.0,0.0,0.12911032891717147,0.0,0.5
+s183,splice,train,1,data\images\s183.png,data\masks\s183.png,base_006,synth,"{""seam_x"": 417, ""other"": ""base_008"", ""gain"": 1.133, ""wb"": [1.042, 0.982, 0.963], ""bias"": 2.46}",0.0,1.0,1.0,0.0,0.0,0.5
+s184,digit_edit,train,1,data\images\s184.png,data\masks\s184.png,base_006,synth,"{""box"": [435, 246, 695, 282]}",0.22265625,1.0,1.0,0.17933836530060457,0.0,0.5
+s185,neg_rescale,train,0,data\images\s185.png,data\masks\s185.png,base_006,synth,"{""kind"": ""rescale""}",0.0,0.10216110019646366,0.3103109792780571,0.0,0.0,0.5
+s186,neg_warm_filter,train,0,data\images\s186.png,data\masks\s186.png,base_006,synth,"{""kind"": ""warm_filter""}",0.0,1.0,0.08692307678871437,0.12237092231886695,0.0,0.5
+s187,original,train,0,data\images\s187.png,data\masks\s187.png,base_008,synth,{},0.0,0.0,0.0,0.13267402796656577,0.0,0.5
+s188,copy_move,train,1,data\images\s188.png,data\masks\s188.png,base_008,synth,"{""size"": 136, ""src"": [785, 399], ""dst"": [676, 215]}",1.0,0.10216110019646366,0.0,0.13920300826817386,0.0,0.5
+s189,splice,train,1,data\images\s189.png,data\masks\s189.png,base_008,synth,"{""seam_x"": 511, ""other"": ""base_041"", ""gain"": 1.171, ""wb"": [0.998, 1.036, 1.026], ""bias"": 0.34}",0.2099609375,1.0,0.2262002836296558,0.0,0.0,0.5
+s190,digit_edit,train,1,data\images\s190.png,data\masks\s190.png,base_008,synth,"{""box"": [195, 464, 455, 500]}",0.22412109375,1.0,0.0,0.16472397073983722,0.0,0.5
+s191,ai_like,train,1,data\images\s191.png,data\masks\s191.png,base_008,ai_like,{},0.0,0.48722986247544203,0.0,0.2792115860511417,0.0,0.5
+s192,neg_sharpen,train,0,data\images\s192.png,data\masks\s192.png,base_008,synth,"{""kind"": ""sharpen""}",0.0,0.9823182711198428,0.014259826003059327,0.0,0.0,0.5
+s193,neg_blur_beauty,train,0,data\images\s193.png,data\masks\s193.png,base_008,synth,"{""kind"": ""blur_beauty""}",0.0,0.518664047151277,0.0,0.09234885488430689,0.0,0.5
+s194,original,train,0,data\images\s194.png,data\masks\s194.png,base_041,synth,{},0.0,0.0,0.0,0.0,0.0,0.5
+s195,copy_move,train,1,data\images\s195.png,data\masks\s195.png,base_041,synth,"{""size"": 79, ""src"": [272, 536], ""dst"": [414, 689]}",1.0,0.0,0.0,0.0,0.0,0.5
+s196,splice,train,1,data\images\s196.png,data\masks\s196.png,base_041,synth,"{""seam_x"": 474, ""other"": ""base_015"", ""gain"": 1.167, ""wb"": [1.048, 1.048, 0.947], ""bias"": -7.51}",0.0,1.0,1.0,0.0,0.0,0.5
+s197,digit_edit,train,1,data\images\s197.png,data\masks\s197.png,base_041,synth,"{""box"": [679, 223, 939, 259]}",0.22265625,1.0,0.19730314606702698,0.0,0.0,0.5
+s198,neg_rescale,train,0,data\images\s198.png,data\masks\s198.png,base_041,synth,"{""kind"": ""rescale""}",0.0,0.047151277013752456,0.151515134123633,0.0,0.0,0.5
+s199,neg_warm_filter,train,0,data\images\s199.png,data\masks\s199.png,base_041,synth,"{""kind"": ""warm_filter""}",0.0,0.44793713163064836,0.0,0.0,0.0,0.5
+s200,original,train,0,data\images\s200.png,data\masks\s200.png,base_015,synth,{},0.0,0.023575638506876228,0.03781534768346548,0.0,0.0,0.5
+s201,copy_move,train,1,data\images\s201.png,data\masks\s201.png,base_015,synth,"{""size"": 110, ""src"": [850, 504], ""dst"": [914, 299]}",1.0,0.023575638506876228,0.03781534768346548,0.0,0.0,0.5
+s202,splice,train,1,data\images\s202.png,data\masks\s202.png,base_015,synth,"{""seam_x"": 462, ""other"": ""base_037"", ""gain"": 1.068, ""wb"": [0.951, 0.99, 0.946], ""bias"": 9.58}",0.0,1.0,1.0,0.0,0.0,0.5
+s203,digit_edit,train,1,data\images\s203.png,data\masks\s203.png,base_015,synth,"{""box"": [491, 233, 751, 269]}",0.223388671875,1.0,0.7475065292146298,0.0,0.0,0.5
+s204,neg_blur_beauty,train,0,data\images\s204.png,data\masks\s204.png,base_015,synth,"{""kind"": ""blur_beauty""}",0.0,0.5343811394891945,0.0,0.0,0.0,0.5
+s205,neg_rescale,train,0,data\images\s205.png,data\masks\s205.png,base_015,synth,"{""kind"": ""rescale""}",0.0,0.32220039292730845,0.10700076735614271,0.0,0.0,0.5
+s206,original,train,0,data\images\s206.png,data\masks\s206.png,base_037,synth,{},0.0,0.06286836935166994,0.1757842090156495,0.25703596931415,0.0,0.5
+s207,copy_move,train,1,data\images\s207.png,data\masks\s207.png,base_037,synth,"{""size"": 124, ""src"": [872, 590], ""dst"": [900, 644]}",0.0,0.06286836935166994,0.1757842090156495,0.24565248317327562,0.0,0.5
+s208,splice,train,1,data\images\s208.png,data\masks\s208.png,base_037,synth,"{""seam_x"": 520, ""other"": ""base_022"", ""gain"": 1.085, ""wb"": [0.985, 0.952, 0.95], ""bias"": 8.75}",0.0,1.0,1.0,0.0,0.0,0.5
+s209,digit_edit,train,1,data\images\s209.png,data\masks\s209.png,base_037,synth,"{""box"": [694, 489, 954, 525]}",0.232177734375,1.0,1.0,0.28258229824349734,0.0,0.5
+s210,neg_rescale,train,0,data\images\s210.png,data\masks\s210.png,base_037,synth,"{""kind"": ""rescale""}",0.0,0.32220039292730845,0.33741279699783555,0.0,0.0,0.5
+s211,neg_blur_beauty,train,0,data\images\s211.png,data\masks\s211.png,base_037,synth,"{""kind"": ""blur_beauty""}",0.0,0.8487229862475442,0.12927671751166342,0.052775018983334594,0.0,0.5
+s212,original,train,0,data\images\s212.png,data\masks\s212.png,base_022,synth,{},0.0,0.0,0.0,0.15427587272605853,0.0,0.5
+s213,copy_move,train,1,data\images\s213.png,data\masks\s213.png,base_022,synth,"{""size"": 134, ""src"": [362, 149], ""dst"": [523, 23]}",1.0,0.07858546168958742,0.0,0.11766097646287907,0.0,0.5
+s214,splice,train,1,data\images\s214.png,data\masks\s214.png,base_022,synth,"{""seam_x"": 664, ""other"": ""base_021"", ""gain"": 0.861, ""wb"": [1.052, 0.966, 1.018], ""bias"": -10.53}",0.0,1.0,1.0,0.0,0.0,0.5
+s215,digit_edit,train,1,data\images\s215.png,data\masks\s215.png,base_022,synth,"{""box"": [683, 430, 943, 466]}",0.22412109375,1.0,0.004001289922881123,0.17914422542276204,0.0,0.5
+s216,neg_jpeg_q70,train,0,data\images\s216.png,data\masks\s216.png,base_022,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s217,neg_sharpen,train,0,data\images\s217.png,data\masks\s217.png,base_022,synth,"{""kind"": ""sharpen""}",0.0,0.6286836935166994,0.0,0.0,0.0,0.5
+s218,original,val,0,data\images\s218.png,data\masks\s218.png,base_021,synth,{},0.0,0.0,0.1614674495136618,0.0,0.0,0.5
+s219,copy_move,val,1,data\images\s219.png,data\masks\s219.png,base_021,synth,"{""size"": 146, ""src"": [541, 162], ""dst"": [832, 336]}",1.0,0.0,0.1614674495136618,0.0,0.0,0.5
+s220,splice,val,1,data\images\s220.png,data\masks\s220.png,base_021,synth,"{""seam_x"": 411, ""other"": ""base_047"", ""gain"": 0.845, ""wb"": [0.991, 1.012, 1.051], ""bias"": 8.76}",0.0,0.5736738703339882,0.1614674495136618,0.0,0.0,0.5
+s221,digit_edit,val,1,data\images\s221.png,data\masks\s221.png,base_021,synth,"{""box"": [121, 587, 381, 623]}",0.22265625,1.0,0.18988668421498112,0.0,0.0,0.5
+s222,ai_like,val,1,data\images\s222.png,data\masks\s222.png,base_021,ai_like,{},0.0,0.825147347740668,0.0,0.28001408853059767,0.0,0.5
+s223,neg_blur_beauty,val,0,data\images\s223.png,data\masks\s223.png,base_021,synth,"{""kind"": ""blur_beauty""}",0.0,0.4165029469548134,0.0,0.0,0.0,0.5
+s224,neg_sharpen,val,0,data\images\s224.png,data\masks\s224.png,base_021,synth,"{""kind"": ""sharpen""}",0.0,0.8094302554027505,0.1344711104086551,0.0,0.0,0.5
+s225,original,val,0,data\images\s225.png,data\masks\s225.png,base_047,synth,{},0.0,0.0,0.18109957221159337,0.906028862140036,0.0,0.5
+s226,copy_move,val,1,data\images\s226.png,data\masks\s226.png,base_047,synth,"{""size"": 118, ""src"": [550, 312], ""dst"": [456, 100]}",0.0,0.0,0.18109957221159337,0.8199818021032573,0.0,0.5
+s227,splice,val,1,data\images\s227.png,data\masks\s227.png,base_047,synth,"{""seam_x"": 356, ""other"": ""base_028"", ""gain"": 1.159, ""wb"": [1.027, 1.037, 0.953], ""bias"": 11.47}",0.0,1.0,1.0,0.7783344024142225,0.0,0.5
+s228,digit_edit,val,1,data\images\s228.png,data\masks\s228.png,base_047,synth,"{""box"": [139, 643, 399, 679]}",0.228515625,1.0,1.0,0.884615824537168,0.0,0.5
+s229,neg_rescale,val,0,data\images\s229.png,data\masks\s229.png,base_047,synth,"{""kind"": ""rescale""}",0.0,0.0,0.0685909559240001,0.0,0.0,0.5
+s230,neg_blur_beauty,val,0,data\images\s230.png,data\masks\s230.png,base_047,synth,"{""kind"": ""blur_beauty""}",0.0,0.5029469548133595,0.06657573734261615,0.8823011352735074,0.0,0.5
+s231,original,val,0,data\images\s231.png,data\masks\s231.png,base_028,synth,{},0.0,0.0,0.0,0.4166539719076166,0.0,0.5
+s232,copy_move,val,1,data\images\s232.png,data\masks\s232.png,base_028,synth,"{""size"": 155, ""src"": [660, 434], ""dst"": [488, 511]}",1.0,0.35363457760314343,0.0,0.3581032872346392,0.0,0.5
+s233,splice,val,1,data\images\s233.png,data\masks\s233.png,base_028,synth,"{""seam_x"": 590, ""other"": ""base_023"", ""gain"": 0.847, ""wb"": [1.059, 1.049, 1.005], ""bias"": -6.45}",0.0,1.0,1.0,0.8716279099477837,0.0,0.5
+s234,digit_edit,val,1,data\images\s234.png,data\masks\s234.png,base_028,synth,"{""box"": [180, 689, 440, 725]}",0.22265625,1.0,0.010795563110118684,0.41923875629457114,0.0,0.5
+s235,neg_warm_filter,val,0,data\images\s235.png,data\masks\s235.png,base_028,synth,"{""kind"": ""warm_filter""}",0.0,0.0,0.0,0.3899108073839083,0.0,0.5
+s236,neg_rescale,val,0,data\images\s236.png,data\masks\s236.png,base_028,synth,"{""kind"": ""rescale""}",0.0,0.37721021611001965,0.0,0.0,0.0,0.5
+s237,original,val,0,data\images\s237.png,data\masks\s237.png,base_023,synth,{},0.0,0.015717092337917484,0.22224299008984696,0.0,0.0,0.5
+s238,copy_move,val,1,data\images\s238.png,data\masks\s238.png,base_023,synth,"{""size"": 87, ""src"": [205, 62], ""dst"": [368, 0]}",0.0,0.015717092337917484,0.22224299008984696,0.0,0.0,0.5
+s239,splice,val,1,data\images\s239.png,data\masks\s239.png,base_023,synth,"{""seam_x"": 555, ""other"": ""base_017"", ""gain"": 0.844, ""wb"": [1.031, 0.958, 1.037], ""bias"": 2.76}",0.0,1.0,1.0,0.0,0.0,0.5
+s240,digit_edit,val,1,data\images\s240.png,data\masks\s240.png,base_023,synth,"{""box"": [447, 148, 707, 184]}",0.216796875,1.0,1.0,0.0,0.0,0.5
+s241,neg_sharpen,val,0,data\images\s241.png,data\masks\s241.png,base_023,synth,"{""kind"": ""sharpen""}",0.0,0.30648330058939094,0.0,0.0,0.0,0.5
+s242,neg_jpeg_q70,val,0,data\images\s242.png,data\masks\s242.png,base_023,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s243,original,val,0,data\images\s243.png,data\masks\s243.png,base_017,synth,{},0.0,0.37721021611001965,0.0,0.0,0.0,0.5
+s244,copy_move,val,1,data\images\s244.png,data\masks\s244.png,base_017,synth,"{""size"": 83, ""src"": [120, 544], ""dst"": [0, 684]}",1.0,0.37721021611001965,0.0,0.0,0.0,0.5
+s245,splice,val,1,data\images\s245.png,data\masks\s245.png,base_017,synth,"{""seam_x"": 541, ""other"": ""base_027"", ""gain"": 1.066, ""wb"": [1.027, 0.963, 1.05], ""bias"": 0.17}",0.0,1.0,1.0,0.0,0.0,0.5
+s246,digit_edit,val,1,data\images\s246.png,data\masks\s246.png,base_017,synth,"{""box"": [625, 526, 885, 562]}",0.2275390625,1.0,0.01566735987898505,0.0,0.0,0.5
+s247,neg_rescale,val,0,data\images\s247.png,data\masks\s247.png,base_017,synth,"{""kind"": ""rescale""}",0.0,0.15717092337917485,0.7373423208557446,0.0,0.0,0.5
+s248,neg_warm_filter,val,0,data\images\s248.png,data\masks\s248.png,base_017,synth,"{""kind"": ""warm_filter""}",0.0,1.0,0.0,0.0,0.0,0.5
+s249,original,val,0,data\images\s249.png,data\masks\s249.png,base_027,synth,{},0.0,0.03929273084479371,0.0,0.8844068395164764,0.0,0.5
+s250,copy_move,val,1,data\images\s250.png,data\masks\s250.png,base_027,synth,"{""size"": 64, ""src"": [26, 145], ""dst"": [269, 248]}",0.0,0.09430255402750491,0.0,0.7724292063674788,0.0,0.5
+s251,splice,val,1,data\images\s251.png,data\masks\s251.png,base_027,synth,"{""seam_x"": 639, ""other"": ""base_003"", ""gain"": 1.149, ""wb"": [1.02, 1.011, 0.988], ""bias"": -8.83}",0.23046875,1.0,1.0,0.22333490074981407,0.0,0.5
+s252,digit_edit,val,1,data\images\s252.png,data\masks\s252.png,base_027,synth,"{""box"": [172, 322, 432, 358]}",0.22900390625,1.0,0.4290343082123344,0.8992724484848751,0.0,0.5
+s253,ai_like,val,1,data\images\s253.png,data\masks\s253.png,base_027,ai_like,{},0.0,0.34577603143418467,0.06167506261884307,1.0,0.0,0.5
+s254,neg_blur_beauty,val,0,data\images\s254.png,data\masks\s254.png,base_027,synth,"{""kind"": ""blur_beauty""}",0.0,0.8408644400785854,0.07559538056526176,0.7858440269094761,0.0,0.5
+s255,neg_sharpen,val,0,data\images\s255.png,data\masks\s255.png,base_027,synth,"{""kind"": ""sharpen""}",0.0,1.0,0.0,0.24942977932657684,0.0,0.5
+s256,original,val,0,data\images\s256.png,data\masks\s256.png,base_003,synth,{},0.0,0.0,0.3320284490203234,0.5456716671334094,0.0,0.5
+s257,copy_move,val,1,data\images\s257.png,data\masks\s257.png,base_003,synth,"{""size"": 106, ""src"": [535, 26], ""dst"": [452, 0]}",0.0,0.0,0.3320284490203234,0.5456716671334094,0.0,0.5
+s258,splice,val,1,data\images\s258.png,data\masks\s258.png,base_003,synth,"{""seam_x"": 561, ""other"": ""base_036"", ""gain"": 1.095, ""wb"": [1.045, 1.038, 0.947], ""bias"": 3.53}",0.0,1.0,1.0,0.0,0.0,0.5
+s259,digit_edit,val,1,data\images\s259.png,data\masks\s259.png,base_003,synth,"{""box"": [677, 646, 937, 682]}",0.224853515625,1.0,1.0,0.5639202391402043,0.0,0.5
+s260,neg_rescale,val,0,data\images\s260.png,data\masks\s260.png,base_003,synth,"{""kind"": ""rescale""}",0.0,0.08644400785854617,0.4505400409422963,0.0,0.0,0.5
+s261,neg_sharpen,val,0,data\images\s261.png,data\masks\s261.png,base_003,synth,"{""kind"": ""sharpen""}",0.0,0.518664047151277,0.0,0.19160189456999155,0.0,0.5
+s262,original,val,0,data\images\s262.png,data\masks\s262.png,base_036,synth,{},0.0,0.0,0.02614602863252506,0.48090547968986136,0.0,0.5
+s263,copy_move,val,1,data\images\s263.png,data\masks\s263.png,base_036,synth,"{""size"": 108, ""src"": [722, 600], ""dst"": [822, 477]}",1.0,0.0,0.02614602863252506,0.46546451334035843,0.0,0.5
+s264,splice,val,1,data\images\s264.png,data\masks\s264.png,base_036,synth,"{""seam_x"": 434, ""other"": ""base_035"", ""gain"": 1.035, ""wb"": [0.979, 1.033, 1.013], ""bias"": -11.94}",0.0,1.0,1.0,0.0,0.0,0.5
+s265,digit_edit,val,1,data\images\s265.png,data\masks\s265.png,base_036,synth,"{""box"": [459, 667, 719, 703]}",0.22412109375,1.0,0.2804664576466255,0.46934269881399354,0.0,0.5
+s266,neg_blur_beauty,val,0,data\images\s266.png,data\masks\s266.png,base_036,synth,"{""kind"": ""blur_beauty""}",0.0,0.4636542239685658,0.15271719524209915,0.43114571388037803,0.0,0.5
+s267,neg_rescale,val,0,data\images\s267.png,data\masks\s267.png,base_036,synth,"{""kind"": ""rescale""}",0.0,0.24361493123772102,0.2389584653349591,0.0,0.0,0.5
+s268,original,val,0,data\images\s268.png,data\masks\s268.png,base_035,synth,{},0.0,0.03929273084479371,0.16268401459147802,0.0,0.0,0.5
+s269,copy_move,val,1,data\images\s269.png,data\masks\s269.png,base_035,synth,"{""size"": 76, ""src"": [364, 365], ""dst"": [592, 449]}",0.0,0.03929273084479371,0.16268401459147802,0.0,0.0,0.5
+s270,splice,val,1,data\images\s270.png,data\masks\s270.png,base_035,synth,"{""seam_x"": 583, ""other"": ""base_009"", ""gain"": 0.93, ""wb"": [0.962, 0.994, 0.972], ""bias"": 7.46}",0.0,1.0,1.0,0.0,0.0,0.5
+s271,digit_edit,val,1,data\images\s271.png,data\masks\s271.png,base_035,synth,"{""box"": [388, 140, 648, 176]}",0.217529296875,1.0,0.10529538245836637,0.0,0.0,0.5
+s272,neg_jpeg_q70,val,0,data\images\s272.png,data\masks\s272.png,base_035,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s273,neg_blur_beauty,val,0,data\images\s273.png,data\masks\s273.png,base_035,synth,"{""kind"": ""blur_beauty""}",0.0,0.4400785854616896,0.0,0.0,0.0,0.5
+s274,original,val,0,data\images\s274.png,data\masks\s274.png,base_009,synth,{},0.0,0.11787819253438114,0.15969718669019042,0.2916401414230749,0.0,0.5
+s275,copy_move,val,1,data\images\s275.png,data\masks\s275.png,base_009,synth,"{""size"": 128, ""src"": [543, 101], ""dst"": [412, 268]}",1.0,0.11787819253438114,0.15969718669019042,0.31704118973114137,0.0,0.5
+s276,splice,val,1,data\images\s276.png,data\masks\s276.png,base_009,synth,"{""seam_x"": 387, ""other"": ""base_044"", ""gain"": 1.062, ""wb"": [0.95, 0.944, 1.016], ""bias"": -9.03}",0.0,1.0,0.41144121346274853,1.0,0.0,0.5
+s277,digit_edit,val,1,data\images\s277.png,data\masks\s277.png,base_009,synth,"{""box"": [105, 248, 365, 284]}",0.23291015625,1.0,0.25759371375153844,0.33159461831690695,0.0,0.5
+s278,neg_jpeg_q70,val,0,data\images\s278.png,data\masks\s278.png,base_009,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s279,neg_jpeg_q90,val,0,data\images\s279.png,data\masks\s279.png,base_009,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s280,original,val,0,data\images\s280.png,data\masks\s280.png,base_044,synth,{},0.0,0.0,0.0,0.7611832179574595,0.0,0.5
+s281,copy_move,val,1,data\images\s281.png,data\masks\s281.png,base_044,synth,"{""size"": 103, ""src"": [103, 171], ""dst"": [0, 285]}",1.0,0.0,0.0,0.7135216617557203,0.0,0.5
+s282,splice,val,1,data\images\s282.png,data\masks\s282.png,base_044,synth,"{""seam_x"": 558, ""other"": ""base_040"", ""gain"": 1.063, ""wb"": [0.965, 1.047, 1.034], ""bias"": -6.17}",0.0,1.0,0.0,0.0,0.0,0.5
+s283,digit_edit,val,1,data\images\s283.png,data\masks\s283.png,base_044,synth,"{""box"": [117, 607, 377, 643]}",0.22900390625,1.0,0.0,0.813742806533809,0.0,0.5
+s284,ai_like,val,1,data\images\s284.png,data\masks\s284.png,base_044,ai_like,{},0.0,0.5658153241650294,0.0,1.0,0.0,0.5
+s285,neg_jpeg_q90,val,0,data\images\s285.png,data\masks\s285.png,base_044,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s286,neg_blur_beauty,val,0,data\images\s286.png,data\masks\s286.png,base_044,synth,"{""kind"": ""blur_beauty""}",0.0,0.550098231827112,0.0,0.7516134335409876,0.0,0.5
+s287,original,val,0,data\images\s287.png,data\masks\s287.png,base_040,synth,{},0.0,0.015717092337917484,0.0,0.09277604909212071,0.0,0.5
+s288,copy_move,val,1,data\images\s288.png,data\masks\s288.png,base_040,synth,"{""size"": 129, ""src"": [538, 160], ""dst"": [316, 50]}",1.0,0.12573673870333987,0.0,0.0,0.0,0.5
+s289,splice,val,1,data\images\s289.png,data\masks\s289.png,base_040,synth,"{""seam_x"": 502, ""other"": ""base_034"", ""gain"": 0.995, ""wb"": [0.957, 0.953, 1.054], ""bias"": 4.56}",0.0,1.0,1.0,0.0067259623757321245,0.0,0.5
+s290,digit_edit,val,1,data\images\s290.png,data\masks\s290.png,base_040,synth,"{""box"": [289, 140, 549, 176]}",0.22265625,1.0,0.1030141539845294,0.11857661910870944,0.0,0.5
+s291,neg_jpeg_q90,val,0,data\images\s291.png,data\masks\s291.png,base_040,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s292,neg_sharpen,val,0,data\images\s292.png,data\masks\s292.png,base_040,synth,"{""kind"": ""sharpen""}",0.0,0.5736738703339882,0.01813737375920137,0.0,0.0,0.5
+s293,original,val,0,data\images\s293.png,data\masks\s293.png,base_034,synth,{},0.0,0.0,0.0,0.0022714106277894838,0.0,0.5
+s294,copy_move,val,1,data\images\s294.png,data\masks\s294.png,base_034,synth,"{""size"": 148, ""src"": [218, 613], ""dst"": [44, 620]}",0.0,0.0,0.0,0.0,0.0,0.5
+s295,splice,val,1,data\images\s295.png,data\masks\s295.png,base_034,synth,"{""seam_x"": 430, ""other"": ""base_042"", ""gain"": 0.909, ""wb"": [0.941, 1.028, 1.047], ""bias"": -5.01}",0.0,1.0,0.0,0.0,0.0,0.5
+s296,digit_edit,val,1,data\images\s296.png,data\masks\s296.png,base_034,synth,"{""box"": [106, 468, 366, 504]}",0.229248046875,1.0,1.0,0.010129103278195049,0.0,0.5
+s297,neg_jpeg_q90,val,0,data\images\s297.png,data\masks\s297.png,base_034,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s298,neg_sharpen,val,0,data\images\s298.png,data\masks\s298.png,base_034,synth,"{""kind"": ""sharpen""}",0.0,0.7779960707269156,0.0,0.0,0.0,0.5
+s299,original,val,0,data\images\s299.png,data\masks\s299.png,base_042,synth,{},0.0,0.1100196463654224,0.0,0.16197343961233415,0.0,0.5
+s300,copy_move,val,1,data\images\s300.png,data\masks\s300.png,base_042,synth,"{""size"": 103, ""src"": [185, 656], ""dst"": [14, 665]}",0.0,0.1100196463654224,0.0,0.12906146966060977,0.0,0.5
+s301,splice,val,1,data\images\s301.png,data\masks\s301.png,base_042,synth,"{""seam_x"": 341, ""other"": ""base_000"", ""gain"": 1.05, ""wb"": [1.019, 1.019, 0.96], ""bias"": -9.59}",0.0,1.0,0.0,0.0,0.0,0.5
+s302,digit_edit,val,1,data\images\s302.png,data\masks\s302.png,base_042,synth,"{""box"": [270, 312, 530, 348]}",0.22265625,1.0,1.0,0.15178808621422504,0.0,0.5
+s303,neg_jpeg_q70,val,0,data\images\s303.png,data\masks\s303.png,base_042,synth,"{""kind"": ""jpeg_q70""}",0.0,1.0,1.0,0.0,0.0,0.5
+s304,neg_jpeg_q90,val,0,data\images\s304.png,data\masks\s304.png,base_042,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5
+s305,original,val,0,data\images\s305.png,data\masks\s305.png,base_000,synth,{},0.0,0.0,0.0,0.5866361902513842,0.0,0.5
+s306,copy_move,val,1,data\images\s306.png,data\masks\s306.png,base_000,synth,"{""size"": 101, ""src"": [418, 84], ""dst"": [482, 281]}",1.0,0.0,0.0,0.4998128589584366,0.0,0.5
+s307,splice,val,1,data\images\s307.png,data\masks\s307.png,base_000,synth,"{""seam_x"": 543, ""other"": ""base_043"", ""gain"": 0.943, ""wb"": [1.002, 1.003, 1.044], ""bias"": -2.2}",0.0,1.0,1.0,1.0,0.0,0.5
+s308,digit_edit,val,1,data\images\s308.png,data\masks\s308.png,base_000,synth,"{""box"": [102, 186, 362, 222]}",0.232177734375,1.0,0.004743461161811285,0.5943412517728847,0.0,0.5
+s309,neg_warm_filter,val,0,data\images\s309.png,data\masks\s309.png,base_000,synth,"{""kind"": ""warm_filter""}",0.0,0.1650294695481336,0.0,0.5284809917141157,0.0,0.5
+s310,neg_jpeg_q90,val,0,data\images\s310.png,data\masks\s310.png,base_000,synth,"{""kind"": ""jpeg_q90""}",0.0,1.0,1.0,0.0,0.0,0.5

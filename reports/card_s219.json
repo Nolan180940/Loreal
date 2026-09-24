@@ -1,0 +1,56 @@
+{
+  "sample_id": "s219",
+  "image": "data\\images\\s219.png",
+  "verdict": "suspicious",
+  "verdict_text": "发现可疑：已标出疑点区域与判定依据",
+  "p_suspect": 0.9984,
+  "backend": "lr_main",
+  "degraded": true,
+  "degraded_reason": "jev_not_provided",
+  "thresholds": {
+    "tau_low": 0.7642,
+    "tau_high": 0.8142
+  },
+  "features": {
+    "x1_copy_move": 1.0,
+    "x2_ela": 0.0,
+    "x3_noise": 0.1483,
+    "x4_seam": 0.0,
+    "x5_spectrum": 1.0,
+    "x6_meta": 0.5
+  },
+  "contributions": {
+    "x1_copy_move": 7.4118,
+    "x2_ela": -1.4792,
+    "x3_noise": 0.1036,
+    "x4_seam": -0.2498,
+    "x5_spectrum": 0.0,
+    "x6_meta": 0.0
+  },
+  "heatmaps": {
+    "x1": "data\\features\\s219_x1.png",
+    "x2": "data\\features\\s219_x2.png",
+    "x3": "data\\features\\s219_x3.png",
+    "x4": "data\\features\\s219_x4.png"
+  },
+  "overlay": "data\\features\\s219_overlay.png",
+  "evidence_text": [
+    "复制-移动痕迹：特征值 1.00（偏高），贡献 +7.41（支持可疑）",
+    "重压缩不一致(ELA)：特征值 0.00（正常），贡献 -1.48（支持正常）",
+    "直线接缝异常：特征值 0.00（正常），贡献 -0.25（支持正常）"
+  ],
+  "recommendation": "建议人工复核，并优先查看标注出的疑点区域",
+  "disclaimer": "本卡为离线取证证据汇总，基于程序化合成数据训练，不代表真实平台准确率；低于阈值仅表示未发现所支持的异常，不构成对内容真实性的证明。",
+  "semantic_source": "not_used",
+  "actions": {
+    "auto_flag": false,
+    "human_review": true,
+    "policy": "auto=AND(保守), review=OR(保召回)",
+    "thresholds": {
+      "t1_lr": 0.7,
+      "t2_jev": 0.7
+    },
+    "degraded": true,
+    "explain": "语义侧不可用，已降级为仅取证侧判定：取证分过线，判定档位 suspicious；单侧证据不触发自动打标。"
+  }
+}
