@@ -4,6 +4,16 @@
 
 ## 用法
 
+**首次使用**（干净克隆后必跑一次，重建 `tools/.venv`）：
+
+```powershell
+python tools\setup_env.py
+```
+
+它会自动建 venv、装依赖、装 Node.js 检查、并验证签名模块可用。
+
+**日常使用**：
+
 ```powershell
 cd D:\LOreal-ai\tools\spider_xhs
 ..\.venv\Scripts\python.exe xhs_cli.py "https://xhslink.cn/o/6wvIYWl9oLU"

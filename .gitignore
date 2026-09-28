@@ -38,8 +38,19 @@ Thumbs.db
 *.cookie
 cookie.txt
 
-# 外部工具（XHS-Downloader / Spider_XHS，含独立 venv 与源码，不入库）
-tools/
+# 外部工具的虚拟环境与构建产物（不入库，体积大且可重建）
+tools/**/.venv/
+tools/**/venv/
+tools/**/__pycache__/
+tools/**/.git/
+tools/**/node_modules/
+tools/**/dist/
+tools/**/build/
+tools/**/*.exe
+tools/**/*.dll
+tools/**/*.pyd
+tools/**/.env
+tools/**/Volume/
 
 # 赛题官方素材与产物（体积大，不入库）
 *.pptx
@@ -51,3 +62,8 @@ data/images_real/
 
 # 真实数据批处理输出（CSV 是产物，脚本本身要入库）
 reports/real_screen.csv
+
+# 外部工具自带的静态资源与文档（非必需，避免仓库膨胀）
+tools/static/
+tools/**/*.md
+!tools/README*.md
