@@ -38,8 +38,6 @@ Thumbs.db
 *.cookie
 cookie.txt
 
-# 外部工具（XHS-Downloader，含独立 venv，不入库）
-
 # 外部工具（XHS-Downloader / Spider_XHS，含独立 venv 与源码，不入库）
 tools/
 
@@ -47,9 +45,9 @@ tools/
 *.pptx
 *.zip
 data/xhs/
+data/xhs_demo/
 data/images_real/
 欧莱雅黑客松-图片*/
 
-# 真实数据批处理输出
+# 真实数据批处理输出（CSV 是产物，脚本本身要入库）
 reports/real_screen.csv
-forensic/screen_real.py
