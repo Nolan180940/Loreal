@@ -5,40 +5,21 @@ __pycache__/
 *.pyc
 *.pyo
 
-# 程序化生成产物（约 500MB，可通过 datagen.py + train.py 复现，不入库）
-data/images/
-data/base/
-data/masks/
-data/features/*.png
-data/features/_*.npy
-
-# 运行日志
-*_log.txt
-*_log2.txt
-train_log*.txt
-eval_log*.txt
-
-# 本地私有文件（赛题 PDF、人工标注 Excel，不入库）
-*.pdf
-*.xlsx
-
-# 模型权重（如未来接入大模型权重，不入库）
-*.bin
-*.safetensors
-*.gguf
-
 # 系统文件
 .DS_Store
 Thumbs.db
 
-# 本地私密配置（cookie / key 等，务必排除）
+# ---- 本地私密配置（务必排除）----
 .env
 .env.*
 !.env.example
 *.cookie
 cookie.txt
 
-# 外部工具的虚拟环境与构建产物（不入库，体积大且可重建）
+# ---- 采集输出（可复现，不入库）----
+data/
+
+# ---- 外部工具的虚拟环境与构建产物 ----
 tools/**/.venv/
 tools/**/venv/
 tools/**/__pycache__/
@@ -49,23 +30,18 @@ tools/**/build/
 tools/**/*.exe
 tools/**/*.dll
 tools/**/*.pyd
-tools/**/.env
 tools/**/Volume/
 
-# 赛题官方素材与产物（体积大，不入库）
-*.pptx
-*.zip
-data/xhs/
-data/xhs_demo/
-data/xhs_demo*/
-data/*_demo*/
-data/images_real/
-欧莱雅黑客松-图片*/
-
-# 真实数据批处理输出（CSV 是产物，脚本本身要入库）
-reports/real_screen.csv
-
-# 外部工具自带的静态资源与文档（非必需，避免仓库膨胀）
+# ---- 外部工具自带的静态资源与文档（非必需，避免仓库膨胀）----
 tools/static/
 tools/**/*.md
 !tools/README*.md
+
+# ---- 赛题官方素材与产物（体积大）----
+*.pptx
+*.zip
+*.pdf
+*.xlsx
+欧莱雅黑客松-图片*/
+*_log.txt
+reports/
