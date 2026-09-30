@@ -57,6 +57,8 @@ tools/**/Volume/
 *.zip
 data/xhs/
 data/xhs_demo/
+data/xhs_demo*/
+data/*_demo*/
 data/images_real/
 欧莱雅黑客松-图片*/
 

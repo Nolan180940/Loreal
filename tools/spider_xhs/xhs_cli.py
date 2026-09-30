@@ -178,8 +178,18 @@ def main() -> int:
                 raise RuntimeError("missing xsec_token")
             ok, msg, top = apis.get_note_all_out_comment(note_id, xsec)
             top = top or []
-            # 笔记页显示的「评论数量」= 一级 + 楼中楼。工具只给一级评论，
-            # 楼中楼以 sub_comments 内联返回，需显式展开。
+
+            # 楼中楼补全：一级响应只内联前几条，必须显式翻 sub/page
+            say("    补全楼中楼...")
+            from thread_fetcher import complete_threads, summarize
+            stat = complete_threads(apis, top, note_id, xsec, verbose=False)
+            if stat["filled"]:
+                say(f"    楼中楼补全 {stat['filled']} 条"
+                    f"（{stat['calls']} 次请求）")
+            if stat["gaps"]:
+                say(f"    [i] 仍有 {len(stat['gaps'])} 个楼未抓全"
+                    f"（可能已被删除/折叠），明细见 card")
+
             subs = []
             for c in top:
                 for s in (c.get("sub_comments") or []):
@@ -187,6 +197,8 @@ def main() -> int:
                     s["_is_reply"] = True
                     subs.append(s)
             comments = top + subs
+            chk = summarize(note_obj, top, subs)
+
             save_json(cmt_dir / "comments.json", comments)
             save_json(cmt_dir / "comments_top.json", top)
             if subs:
@@ -204,11 +216,29 @@ def main() -> int:
                     stxt = (s.get("content") or "").replace("\n", " ").strip()
                     lines.append(
                         f"    └ [{sui.get('nickname', '?')} 回复] {stxt[:52]}")
-            header = (f"一级评论 {len(top)} 条 | 楼中楼 {len(subs)} 条 | "
-                      f"合计 {len(comments)} 条\n")
+            header = (f"笔记页显示 {chk['note_reported']} | "
+                      f"一级 {chk['top_level']} + 楼中楼 {chk['replies']} "
+                      f"= {chk['total']} | "
+                      f"{'已对齐' if chk['matched'] else '差 %d' % chk['diff']}\n")
             save_text(cmt_dir / "comments.txt", header + "\n" + "\n".join(lines))
-            say(f"    一级 {len(top)} + 楼中楼 {len(subs)} = {len(comments)} 条"
-                f" -> {cmt_dir}")
+
+            card = {
+                "note_id": note_id,
+                "expected": chk["note_reported"],
+                "top_level": chk["top_level"],
+                "replies": chk["replies"],
+                "total": chk["total"],
+                "complete": chk["matched"],
+                "diff": chk["diff"],
+                "thread_fill_calls": stat["calls"],
+                "thread_gaps": stat["gaps"],
+            }
+            save_json(cmt_dir / "card.json", card)
+
+            say(f"    一级 {chk['top_level']} + 楼中楼 {chk['replies']} "
+                f"= {chk['total']} 条"
+                f"（笔记显示 {chk['note_reported']}，"
+                f"{'已对齐' if chk['matched'] else '差 %d' % chk['diff']}）")
         except Exception as e:
             say(f"    [!] 评论抓取失败：{type(e).__name__}: {e}")
 
