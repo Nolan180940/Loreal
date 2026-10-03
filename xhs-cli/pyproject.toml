@@ -1,0 +1,23 @@
+[project]
+name = "xhs-cli"
+version = "0.1.0"
+description = "匿名免登录采集小红书笔记：文案 / 图片 / 首批评论"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "playwright>=1.44",
+    "curl_cffi>=0.7",
+]
+
+[project.scripts]
+xhs = "xhs_cli.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+xhs_cli = ["py.typed"]
