@@ -181,6 +181,7 @@ def fetch_share_page(
     page=None,
     navigated: bool = False,
     engine: str = "chromium",
+    cookies_file: str | None = None,
 ) -> PageData:
     """匿名抓取分享页（浏览器渲染）并解析。
 
@@ -190,14 +191,26 @@ def fetch_share_page(
         return _fetch_via_page(page, url, note_id, timeout=timeout,
                                retries=retries, navigated=navigated)
 
-    with _anon_browser(proxy, engine=engine) as (br, pg):
+    with _anon_browser(proxy, engine=engine,
+                       cookies_file=cookies_file) as (br, pg):
         return _fetch_via_page(pg, url, note_id, timeout=timeout,
                                retries=retries, navigated=navigated)
 
 
 def _anon_browser(proxy: str | None = None, with_guest_cookies: bool = True,
-                  engine: str = "chromium", headless: bool = True):
-    """创建**全新、无登录态**的浏览器上下文（文档见模块顶部设计说明）。"""
+                  engine: str = "chromium", headless: bool = True,
+                  cookies_file: str | None = None,
+                  profile_dir: str | None = None):
+    """创建浏览器上下文（文档见模块顶部设计说明）。
+
+    ``cookies_file``
+        显式提供一份 cookie JSON 时注入它（非匿名模式，用于 token 失效但
+        浏览器会话仍有效的补救场景）。默认 None → 保持匿名。
+
+    ``profile_dir``
+        传 persistent profile 目录时改用 ``launch_persistent_context``，
+        复用该目录的登录态（非匿名模式）。
+    """
     from playwright.sync_api import sync_playwright
 
     pw = sync_playwright().start()
@@ -206,18 +219,34 @@ def _anon_browser(proxy: str | None = None, with_guest_cookies: bool = True,
         p = proxy if "://" in proxy else f"http://{proxy}"
         launch["proxy"] = {"server": p}
     if engine == "chrome":
-        # 本机 Chrome：TLS 指纹与真人一致。注意仍是全新隔离上下文，
-        # 不加载用户 profile，不携带任何登录态。
         launch["channel"] = "chrome"
+    if engine == "chrome" or cookies_file or profile_dir:
         launch.setdefault("args", []).append(
             "--disable-blink-features=AutomationControlled")
+
+    ctx_kwargs = dict(user_agent=UA, locale="zh-CN",
+                      viewport={"width": 1440, "height": 900})
+
+    if profile_dir:
+        ctx = pw.chromium.launch_persistent_context(
+            profile_dir, **launch, **ctx_kwargs)
+        br = ctx.browser or ctx
+        pg = ctx.pages[0] if ctx.pages else ctx.new_page()
+        return _BrowserCtx(pw, br, ctx, pg)
+
     br = pw.chromium.launch(**launch)
-    ctx = br.new_context(
-        user_agent=UA,
-        locale="zh-CN",
-        viewport={"width": 1440, "height": 900},
-    )
-    if with_guest_cookies:
+    ctx = br.new_context(**ctx_kwargs)
+
+    if cookies_file:
+        import json as _json
+        from pathlib import Path as _Path
+        data = _json.loads(_Path(cookies_file).read_text(encoding="utf-8"))
+        ctx.add_cookies([
+            {"name": k, "value": str(v),
+             "domain": ".xiaohongshu.com", "path": "/"}
+            for k, v in data.items()
+        ])
+    elif with_guest_cookies:
         gc = guest_cookies()
         assert_anonymous(cookies=gc)     # 硬约束：不得含登录态
         ctx.add_cookies([

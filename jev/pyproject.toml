@@ -1,0 +1,37 @@
+[project]
+name = "jev-guard"
+version = "0.1.0"
+description = "小红书内容核验：基于 jev-1.13 (System One) 的可解释内容风险判断"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+# 采集侧复用 xhs-cli 的产出，本包只做判断，不依赖采集库
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+
+[project.scripts]
+jev-guard = "jev_guard.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+jev_guard = ["py.typed", "questions/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --tb=short"
+markers = [
+    "network: 需要真实 API key 的联网测试",
+    "slow: 较慢的测试",
+]

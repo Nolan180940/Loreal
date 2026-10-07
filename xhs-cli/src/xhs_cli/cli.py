@@ -43,7 +43,8 @@ def _log(msg: str) -> None:
 
 def collect_one(ref, out_root: Path, *, skip_images: bool = False,
                 proxy: str | None = None, page=None, navigated: bool = False,
-                engine: str = "chromium") -> dict:
+                engine: str = "chromium",
+                cookies_file: str | None = None) -> dict:
     """采集单篇，返回结果记录。
 
     ``page``        为复用页面；不传则自建（仅单篇调试用）。
@@ -51,52 +52,77 @@ def collect_one(ref, out_root: Path, *, skip_images: bool = False,
     """
     lay = NoteLayout(out_root, ref.note_id).ensure()
 
-    # 已有完整数据则跳过（断点续跑）
-    cached = lay.read_note()
-    if cached and (skip_images or lay.image_files()):
-        _log(f"  [skip] 已有数据 {ref.note_id[:12]}")
+    # 分项判断：content / images / comments 各自独立补全，
+    # 任一缺失都要继续抓，不能因为 content 存在就整体跳过。
+    have_note = bool(lay.read_note())
+    have_imgs = bool(lay.image_files()) or skip_images
+    have_cmts = lay.has_comments()
+    if have_note and have_imgs and have_cmts:
+        _log(f"  [skip] 数据齐全 {ref.note_id[:12]}")
         return {"note_id": ref.note_id, "status": "skipped"}
+
+    todo = []
+    if not have_note:
+        todo.append("content")
+    if not have_imgs:
+        todo.append("images")
+    if not have_cmts:
+        todo.append("comments")
+    _log(f"  待补: {'/'.join(todo)}")
 
     if page is not None:
         page_data = fetch_share_page(ref.url, ref.note_id, page=page,
                                      navigated=navigated)
     else:
-        with _anon_browser(proxy, engine=engine) as (_br, pg):
+        with _anon_browser(proxy, engine=engine,
+                           cookies_file=cookies_file) as (_br, pg):
             page_data = fetch_share_page(ref.url, ref.note_id, page=pg)
 
-    lay.write_note(note_mod.to_note_dict(page_data))
-    _log(f"  content ok | 正文{len(page_data.desc)}字 | 标签{len(page_data.tags)}个")
+    if not have_note:
+        lay.write_note(note_mod.to_note_dict(page_data))
+        _log(f"  content ok | 正文{len(page_data.desc)}字 | 标签{len(page_data.tags)}个")
+    else:
+        _log("  content 已存在，跳过")
 
+    img_stats: dict = {"declared": 0, "downloaded": 0, "complete": False}
     urls = images_mod.image_urls(page_data.images)
-    lay.write_image_urls(urls)
+    if urls:
+        lay.write_image_urls(urls)
+        img_stats["declared"] = len(urls)
+        if not have_imgs:
+            results = download_images(urls, lay.images, proxy=proxy, page=page)
+            img_stats = images_mod.summarize(results, len(urls))
+            _log(f"  images ok | {img_stats['downloaded']}/{img_stats['declared']} 张 "
+                 f"({img_stats['bytes'] // 1024} KB)")
+        else:
+            img_stats["downloaded"] = len(lay.image_files())
+            img_stats["complete"] = img_stats["downloaded"] >= img_stats["declared"]
+            _log(f"  images 已存在 ({img_stats['downloaded']} 张)，跳过")
 
-    img_stats: dict = {"declared": len(urls), "downloaded": 0, "complete": False}
-    if not skip_images and urls:
-        results = download_images(urls, lay.images, proxy=proxy, page=page)
-        img_stats = images_mod.summarize(results, len(urls))
-        _log(f"  images ok | {img_stats['downloaded']}/{img_stats['declared']} 张 "
-             f"({img_stats['bytes'] // 1024} KB)")
+    if not have_cmts:
+        top, replies = comments_first.normalize_comments(page_data.comments)
+        card = comments_first.summarize(top, replies, page_data.comment_count)
+        inline_got, inline_want = comments_first.inline_coverage(top)
+        card["inline_replies"] = f"{inline_got}/{inline_want}"
+        card["note_id"] = ref.note_id
+        card["image_stats"] = img_stats
 
-    top, replies = comments_first.normalize_comments(page_data.comments)
-    card = comments_first.summarize(top, replies, page_data.comment_count)
-    inline_got, inline_want = comments_first.inline_coverage(top)
-    card["inline_replies"] = f"{inline_got}/{inline_want}"
-    card["note_id"] = ref.note_id
-    card["image_stats"] = img_stats
-
-    lay.write_comments(top, card, replies)
-    _log(f"  comments ok | 一级{card['top_level']} + 楼中楼{card['replies']} "
-         f"= {card['total']}"
-         + (f" (平台显示 {card['note_reported']}, 首批数据)"
-            if card["partial"] else ""))
+        lay.write_comments(top, card, replies)
+        _log(f"  comments ok | 一级{card['top_level']} + 楼中楼{card['replies']} "
+             f"= {card['total']}"
+             + (f" (平台显示 {card['note_reported']}, 首批数据)"
+                if card["partial"] else ""))
+    else:
+        card = lay.read_card()
+        _log("  comments 已存在，跳过")
 
     return {
         "note_id": ref.note_id,
         "status": "ok",
         "desc_len": len(page_data.desc),
         "images": img_stats["downloaded"],
-        "comments": card["total"],
-        "partial": card["partial"],
+        "comments": int(card.get("total") or 0),
+        "partial": bool(card.get("partial")),
     }
 
 
@@ -117,6 +143,8 @@ def main(argv: list[str] | None = None) -> int:
                          "chrome=本机Chrome(TLS指纹更像真人，仍匿名隔离)")
     ap.add_argument("--no-headless", action="store_true",
                     help="显示浏览器窗口（调试用）")
+    ap.add_argument("--cookies", default=None, metavar="FILE",
+                    help="注入 cookie JSON（非匿名模式，token 失效时补救用）")
     ap.add_argument("--version", action="version", version=f"xhs-cli {__version__}")
     args = ap.parse_args(argv)
 
@@ -147,13 +175,15 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     _log(f"[..] 待采集 {len(urls)} 条 | 输出 {out_root} | "
-          f"匿名模式（无 cookie）| 引擎={args.engine}")
+          f"{'注入cookie:' + args.cookies if args.cookies else '匿名模式（无 cookie）'}"
+          f" | 引擎={args.engine}")
 
     ok = skipped = failed = 0
     # 全程复用同一个「全新匿名」浏览器上下文：既保证不携带登录态，
     # 也避免每篇重启浏览器的开销。
     with _anon_browser(args.proxy, engine=args.engine,
-                       headless=not args.no_headless) as (_br, page):
+                       headless=not args.no_headless,
+                       cookies_file=args.cookies) as (_br, page):
         _log("[..] 预热访客会话（访问首页）…")
         if warmup(page):
             _log("[OK] 访客会话就绪")
@@ -189,7 +219,8 @@ def main(argv: list[str] | None = None) -> int:
                                      skip_images=args.skip_images,
                                      proxy=args.proxy, page=page,
                                      navigated=navigated,
-                                     engine=args.engine)
+                                     engine=args.engine,
+                                     cookies_file=args.cookies)
                 if result["status"] == "skipped":
                     skipped += 1
                 else:

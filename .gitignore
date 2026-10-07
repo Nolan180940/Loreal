@@ -15,6 +15,7 @@ Thumbs.db
 !.env.example
 *.cookie
 cookie.txt
+.session/
 
 # ---- 采集输出（可复现，不入库）----
 data/
@@ -45,3 +46,13 @@ tools/**/*.md
 欧莱雅黑客松-图片*/
 *_log.txt
 reports/
+
+# ---- 探索阶段产物（已被 jev/ 正式工程取代，保留本地即可）----
+regression/
+jev/out/
+jev/**/__pycache__/
+jev/.pytest_cache/
+jev/*.egg-info/
+
+# ---- 已废弃草稿（功能已被 jev/src/jev_guard/providers/jev.py 取代）----
+regressionjev_client.py
