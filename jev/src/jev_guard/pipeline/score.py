@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -10,8 +11,8 @@ from ..core.config import Config
 from ..core.errors import DataError
 from ..core.models import Label, RiskLevel, SubjectKind
 from ..core.scoring import RuleEngine
-from ..extractors.reader import (Subject, iter_note_ids, load_comments,
-                                 load_note, note_ip_stats)
+from ..extractors.reader import (Subject, comment_length_spread, iter_note_ids,
+                                 load_comments, load_note, note_ip_stats)
 from .store import LabelStore, ResultStore
 
 
@@ -61,10 +62,15 @@ def score_all(cfg: Config,
                label_path: Path,
                out_path: Path,
                use_ip_signals: bool = True,
+               use_spread: bool = True,
                reset: bool = False) -> dict[str, Any]:
     """对所有已打标的笔记评分并落盘。
 
     评论级的分数也存在同一文件里，用 ``kind`` 字段区分。
+
+    ``use_ip_signals`` / ``use_spread``
+        分别是 IP 集中度（借用 is_ad 权重）和 Layer 2 传播质量信号的开关。
+        两者都**只影响 notes / Layer 2 字段**，不改变 Layer 1 的 level。
     """
     idx = build_index(label_path)
     if not idx:
@@ -80,6 +86,7 @@ def score_all(cfg: Config,
 
     existing = {r["subject_id"] for r in store.load()}
     counts = {lv: 0 for lv in RiskLevel}
+    spread_flagged = 0
     scored = skipped = 0
 
     # 先处理笔记（能拿到正文做证据抽取 + IP 统计）
@@ -105,6 +112,25 @@ def score_all(cfg: Config,
                 extra["is_ad"] = round(st["ip_top1_ratio"], 4)
         rs = engine.evaluate(label, text=subj.text_for_model,
                              extra_signals=extra)
+
+        # ---- Layer 2：传播质量（不影响 total / level）----
+        # 只对笔记算；评论自身没有"评论区"。
+        if use_spread:
+            sp = comment_length_spread(cfg.data_root, nid)
+            rs = rs.with_spread(
+                n=sp["n"], mean=sp["mean"], sd=sp["sd"],
+                flag=sp["spread_flag"],
+            )
+            if sp["spread_flag"]:
+                spread_flagged += 1
+                rs = replace(
+                    rs,
+                    notes=rs.notes + (
+                        f"评论区长度标准差 {sp['sd']:.1f}（{sp['n']} 条），"
+                        f"整齐得不自然 —— 疑似模板化/刷评（不影响内容判定）",
+                    ),
+                )
+
         store.save(rs.to_dict())
         counts[rs.level] += 1
         scored += 1
@@ -125,6 +151,7 @@ def score_all(cfg: Config,
         "high": counts[RiskLevel.HIGH],
         "medium": counts[RiskLevel.MEDIUM],
         "low": counts[RiskLevel.LOW],
+        "spread_flagged": spread_flagged,
         "out": str(out_path),
         "thresholds": {"high": cfg.thresholds.high,
                        "medium": cfg.thresholds.medium},

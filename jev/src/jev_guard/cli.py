@@ -135,6 +135,7 @@ def cmd_score(args, cfg: Config) -> int:
 
     res = score_all(cfg, merged, out_dir / "scores.jsonl",
                     use_ip_signals=not args.no_ip,
+                    use_spread=not getattr(args, "no_spread", False),
                     reset=args.reset)
     _out(res)
     return 0
@@ -160,11 +161,14 @@ def cmd_report(args, cfg: Config) -> int:
     table_rows = []
     for r in top:
         ev = (r.get("evidence") or ["-"])[0].replace("\n", " ")
+        sd = r.get("spread_sd")
         table_rows.append([
             r["subject_id"][:8],
             f"{r['total']:.3f}",
             r.get("level_label", ""),
             r.get("top_factor") or "-",
+            ("%.1f" % sd) if sd is not None else "-",
+            "⚠" if r.get("spread_flag") else "",
             ev[:40],
         ])
 
@@ -172,12 +176,15 @@ def cmd_report(args, cfg: Config) -> int:
         _out({"distribution": dist, "top": top})
         return 0
 
+    n_flag = sum(1 for r in notes if r.get("spread_flag"))
     print(f"\n风险分布（共 {len(rows)} 条）")
     print(f"  高风险 {dist.get('high', 0)}  "
-          f"中风险 {dist.get('medium', 0)}  低风险 {dist.get('low', 0)}\n")
+          f"中风险 {dist.get('medium', 0)}  低风险 {dist.get('low', 0)}")
+    print(f"  Layer 2 传播质量告警 {n_flag}/{len(notes)} 篇"
+          f"（评论区长度标准差 < 7）\n")
     print(f"Top {args.top} 高风险笔记")
     print(_table(table_rows,
-                 ["note_id", "总分", "档位", "主因", "证据片段"]))
+                 ["note_id", "总分", "档位", "主因", "评论SD", "L2", "证据片段"]))
     return 0
 
 
@@ -213,6 +220,16 @@ def cmd_inspect(args, cfg: Config) -> int:
         conf = (f" conf={d['confidence']:.2f}"
                 if d.get("confidence") is not None else "")
         print(f"  {d['name']:<14}{d['value']:.3f} {bar}{conf}")
+
+    # ---- Layer 2：传播质量（独立于 Layer 1，不影响上面的总分/档位）----
+    if hit.get("spread_n"):
+        sd = hit.get("spread_sd")
+        sd_s = f"{sd:.1f}" if sd is not None else "样本不足"
+        flag = "  ⚠ 疑似模板化/刷评" if hit.get("spread_flag") else ""
+        print(f"\n传播质量（Layer 2，不影响内容判定）:")
+        print(f"  评论数 {hit['spread_n']}  "
+              f"平均长度 {hit.get('spread_mean')}  "
+              f"标准差 {sd_s}{flag}")
     if hit.get("evidence"):
         print(f"\n命中证据:")
         for e in hit["evidence"]:
@@ -288,6 +305,8 @@ def build_parser() -> argparse.ArgumentParser:
     sc = sub.add_parser("score", help="生成风险评分")
     sc.add_argument("--reset", action="store_true", help="清空已有评分")
     sc.add_argument("--no-ip", action="store_true", help="不叠加 IP 集中度信号")
+    sc.add_argument("--no-spread", action="store_true",
+                    help="不计算 Layer 2 传播质量信号（评论长度标准差）")
     sc.set_defaults(fn=cmd_score)
 
     rp = sub.add_parser("report", help="风险报告")

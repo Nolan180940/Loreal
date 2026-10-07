@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, replace
 from enum import Enum
 from typing import Any
 
@@ -69,19 +69,56 @@ class DimensionScore:
 
 @dataclass(frozen=True, slots=True)
 class RiskScore:
-    """一条内容的综合风险评分。"""
+    """一条内容的综合风险评分。
+
+    两层结构
+    --------
+    ``total`` / ``level``
+        **Layer 1 — 内容真实性**。jev 读文本 + 规则引擎加权得出。
+        这是主判定，进阈值分档。
+
+    ``spread_*``
+        **Layer 2 — 传播质量**。评论长度离散度等结构指标，
+        **不参与加权、不影响 level**。因为它衡量的是「评论区是否被操纵」，
+        与「内容是否虚假」是两个独立问题：真诚的广告评论区也可能很整齐，
+        真实的测评评论区也可能被刷。
+
+    为什么分开而不是合成一个数
+    --------------------------
+    合成后无法解释「为什么判高风险」——是内容有问题，还是评论区不自然？
+    而这两者的处置动作完全不同（前者下架内容，后者风控账号）。
+
+    验证依据：``spread_sd`` 对人工判读 high vs 其他 AUC=0.853
+    （见 ``tools/validate_signals.py``），与 Layer 1 相互独立。
+    """
 
     subject_id: str
     kind: SubjectKind
-    total: float                          # 0..1 加权综合分
+    total: float                          # 0..1 加权综合分（Layer 1）
     level: RiskLevel
     dimensions: tuple[DimensionScore, ...]
     evidence: tuple[str, ...] = ()       # 触发判定的关键片段
     notes: tuple[str, ...] = ()          # 补充说明
 
+    # ---- Layer 2：传播质量（不影响 total / level）----
+    spread_n: int = 0                     # 参与计算的评论数
+    spread_mean: float | None = None      # 评论平均长度
+    spread_sd: float | None = None        # 评论长度标准差
+    spread_flag: bool = False             # 评论区整齐得不自然
+
     def top_factor(self) -> DimensionScore | None:
         """最高分的维度 —— 用于「主要因为什么被判高风险」。"""
         return max(self.dimensions, key=lambda d: d.value) if self.dimensions else None
+
+    def with_spread(self, n: int, mean: float | None,
+                    sd: float | None, flag: bool) -> "RiskScore":
+        """返回附带 Layer 2 指标的副本。
+
+        :class:`RiskScore` 是 frozen 的，所以用 :func:`dataclasses.replace`
+        语义上等价但更明确 —— 不会让人误以为可以原地改。
+        """
+        return replace(self, spread_n=n, spread_mean=mean,
+                       spread_sd=sd, spread_flag=flag)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -95,6 +132,10 @@ class RiskScore:
                            if self.top_factor() else None),
             "evidence": list(self.evidence),
             "notes": list(self.notes),
+            "spread_n": self.spread_n,
+            "spread_mean": self.spread_mean,
+            "spread_sd": self.spread_sd,
+            "spread_flag": self.spread_flag,
         }
 
 

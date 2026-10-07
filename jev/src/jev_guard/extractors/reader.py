@@ -23,6 +23,21 @@ from typing import Any, Iterator
 
 NOTE_ID_LEN = 24
 
+#: 计算评论长度标准差所需的最少评论数。
+#:
+#: 2 条评论的标准差在数学上必然很小（无论内容是否刷评），
+#: 所以样本不足时不报 flag，只把 n 透出去给上层展示。
+SPREAD_MIN_COMMENTS = 3
+
+#: 标准差低于此值判为「评论区整齐得不自然」。
+#:
+#: 依据（tools/validate_signals.py，人工判读 24 条）：
+#:   人工 high 的5 篇里 4 篇 SD ≤ 6.1
+#:   人工 low  的 14 篇里 13 篇 SD ≥ 8.6
+#: 阈值取 7 落在两组之间。唯一被漏掉的是 `6a7ebdfe`(SD=15.6)——
+#: 个人号的真实测评帖，评论区在认真讨论，属于可接受的方向性误差。
+SPREAD_SD_THRESHOLD = 7.0
+
 
 def pick(note: dict[str, Any], key: str, default: Any = None) -> Any:
     """按 ``key`` 取值，自动回退到中文别名。
@@ -231,6 +246,64 @@ def iter_all_subjects(data_root: Path,
         yield n
         if with_comments:
             yield from load_comments(data_root, n.subject_id)
+
+
+def comment_length_spread(data_root: Path, note_id: str) -> dict[str, Any]:
+    """评论长度离散度 —— Layer 2「传播质量」信号。
+
+    思路
+    ----
+    广告/刷评的评论区是**短句打卡区**（"求链接""多少钱""+1"），
+    长度高度一致；真实讨论天然有长有短（"我用了三个月…（40字）"
+    和 "好用" 混在一起）。所以**标准差比均值更可靠**：
+
+        均值短 ≠ 可疑（活动贴评论区天然短）
+        标准差小 = 可疑（要伪造整齐度得故意写长短不一的评论）
+
+    实测（42篇 / 915 条，见 tools/validate_signals.py）
+    ----------------------------------------------
+    - 对人工判读 high vs 其他：**AUC 0.853**（三个候选信号里最强）
+    - 对官方号vs 个人号：AUC 1.000
+    - jev 分数 vs 评论均长 r=−0.470，本信号 r=−0.471（同一方向）
+
+    为什么不进 ``total``
+    --------------------
+    AUC 衡量的是「区分能力」，不是「加权价值」。n=42 时任何新权重都是
+    过拟合，而且会把已验证的 83.3% 一致率拖下水。所以它作为**独立的第二层**
+    输出，不参与加权 —— 语义也不同：这是「传播质量」，不是「内容真实性」。
+
+    只用评论**正文**，不依赖 ``create_time`` / ``ip_location`` /
+    ``like_count`` —— 那三个字段匿名采集拿不到（见 docs/PLAN.md）。
+
+    Returns
+    -------
+    dict
+        ``n`` 评论数· ``mean`` 平均长度 · ``sd`` 标准差 ·
+        ``spread_flag`` 是否整齐得不自然
+    """
+    arr = _read_json(Path(data_root) / note_id / "comments" / "comments.json")
+    if not isinstance(arr, list):
+        return {"n": 0, "mean": 0.0, "sd": None, "spread_flag": False}
+
+    lens = [len(str(r.get("content") or "").strip())
+            for r in arr if isinstance(r, dict)]
+    lens = [x for x in lens if x > 0]
+    n = len(lens)
+    if n < SPREAD_MIN_COMMENTS:
+        # 样本太少时标准差不可靠：2 条评论永远「整齐」，
+        # 但那是数学必然不是人为整齐。
+        return {"n": n, "mean": (sum(lens) / n if n else 0.0),
+                "sd": None, "spread_flag": False}
+
+    mean = sum(lens) / n
+    var = sum((x - mean) ** 2 for x in lens) / n
+    sd = var ** 0.5
+    return {
+        "n": n,
+        "mean": round(mean, 2),
+        "sd": round(sd, 2),
+        "spread_flag": sd < SPREAD_SD_THRESHOLD,
+    }
 
 
 def note_ip_stats(data_root: Path, note_id: str) -> dict[str, float]:
