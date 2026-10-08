@@ -1,0 +1,14 @@
+{
+  "note_id": "6ac7a169000000000200e07a",
+  "top_level": 10,
+  "replies": 1,
+  "total": 11,
+  "note_reported": 51,
+  "note_reported_known": true,
+  "matched": false,
+  "diff": 40,
+  "partial": true,
+  "pages_fetched": 1,
+  "images_downloaded": 1,
+  "source": "ssr_camelcase"
+}
