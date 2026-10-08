@@ -1,0 +1,27 @@
+{"note_id": "f1881413-5d68-439e-9821-572dc5e65048#1790756154893", "title": "", "ts": "2026-09-30 16:24:13", "status": "fail", "error": "RuntimeError: 笔记数据为空（可能 xsec_token 过期）"}
+{"note_id": "ac4b621b-1b84-4192-bc3e-64144aef7ba4#1790756158664", "title": "", "ts": "2026-09-30 16:28:05", "status": "fail", "error": "RuntimeError: 笔记数据为空（可能 xsec_token 过期）"}
+{"note_id": "6ab6a30e0000000015000da7", "title": "惊喜盒子｜小棕瓶限时掉落，速来领取！", "ts": "2026-09-30 16:56:22", "status": "throttled", "error": "RiskError: HTTP 461 访问频繁 (/api/sns/web/v2/comment/page)", "sec": 45.1}
+{"note_id": "6abca4c9000000001a0240e6", "title": "惊喜盒子｜雅诗兰黛小棕瓶掉啦", "ts": "2026-09-30 16:57:52", "images": 1, "status": "throttled", "error": "RiskError: HTTP 461 访问频繁 (/api/sns/web/v2/comment/page)", "sec": 8.9}
+{"note_id": "6abcc08e000000000b004902", "title": "好消息:掉盒子了，坏消息:是壁纸😅", "ts": "2026-09-30 16:58:46", "images": 1, "status": "throttled", "error": "RiskError: HTTP 461 访问频繁 (/api/sns/web/v2/comment/page)", "sec": 10.2}
+{"note_id": "6ab6a30e0000000015000da7", "title": "惊喜盒子｜小棕瓶限时掉落，速来领取！", "ts": "2026-09-30 17:09:30", "status": "content_only", "sec": 0.0}
+{"note_id": "6abc9b7b000000001802e997", "title": "天塌下来我的全修小棕瓶都是白天用的。。。", "ts": "2026-09-30 17:09:33", "images": 2, "status": "content_only", "sec": 5.7}
+{"note_id": "6abb030f000000001803b3e0", "title": "今日快乐是雅诗兰黛小棕瓶给的❤️", "ts": "2026-09-30 17:09:43", "images": 2, "status": "content_only", "sec": 8.8}
+{"note_id": "6abc7ee900000000180116a8", "title": "锐评雅诗兰黛全修小棕瓶修护抗老逻辑", "ts": "2026-09-30 17:09:55", "images": 6, "status": "content_only", "sec": 12.1}
+{"note_id": "6aa67551000000001401ce8c", "title": "目前没发现任何更好的面霜", "ts": "2026-09-30 17:10:11", "images": 1, "status": "content_only", "sec": 13.9}
+{"note_id": "6a17c863000000000702e8ef", "title": "珂润面霜买错了", "ts": "2026-09-30 17:10:30", "images": 2, "status": "content_only", "sec": 8.4}
+{"note_id": "6931e77a000000001e033f7b", "title": "珂润面霜今年入的很对很适合油皮冬季用", "ts": "2026-09-30 17:10:42", "images": 3, "status": "content_only", "sec": 6.3}
+{"note_id": "6a72e8f500000000050288b1", "title": "珂润面霜的贵替有啥啊", "ts": "2026-09-30 17:10:51", "images": 1, "status": "content_only", "sec": 6.5}
+{"note_id": "6a68abea000000000503a6aa", "title": "面霜，你自由了", "ts": "2026-09-30 17:11:01", "images": 1, "status": "content_only", "sec": 12.1}
+{"note_id": "6ab0866c000000000b037e92", "title": "珂润面霜踩雷", "ts": "2026-09-30 17:11:17", "images": 1, "status": "content_only", "sec": 6.3}
+{"note_id": "6abc5bb8000000000202bdc0", "title": "", "ts": "2026-09-30 17:11:27", "images": 1, "status": "content_only", "sec": 4.7}
+{"note_id": "6a97b778000000002b012493", "title": "业内人锐评薇诺娜特护霜（无废话）", "ts": "2026-09-30 17:11:36", "status": "fail", "error": "RuntimeError: <asyncio.locks.Semaphore object at 0x00000220CD401E80 [locked]> is bound to a different event loop"}
+{"note_id": "6a29550f0000000022026616", "title": "没人比它争议大｜自用repo", "ts": "2026-09-30 17:11:47", "images": 3, "status": "content_only", "sec": 6.4}
+{"note_id": "69575a6100000000210298f0", "title": "薇诺娜特护霜，用过的人说点实话", "ts": "2026-09-30 17:11:58", "images": 1, "status": "content_only", "sec": 6.2}
+{"note_id": "69b0462b00000000040010b0", "title": "敏感肌不能用", "ts": "2026-09-30 17:12:07", "images": 1, "status": "content_only", "sec": 10.1}
+{"note_id": "6a957d1f000000002003a171", "title": "此物对烂脸的杀伤力为100000%！！", "ts": "2026-09-30 17:12:21", "images": 0, "status": "content_only", "sec": 4.4}
+{"note_id": "69ef4c520000000036003631", "title": "薇诺娜特护霜你竟然背刺我", "ts": "2026-09-30 17:12:28", "status": "fail", "error": "RuntimeError: 笔记数据为空（可能 xsec_token 过期）"}
+{"note_id": "6a57b437000000001702fd1e", "title": "山姆买的薇诺娜敏感肌特护霜 壁垒！", "ts": "2026-09-30 17:12:32", "status": "fail", "error": "RuntimeError: 笔记数据为空（可能 xsec_token 过期）"}
+{"note_id": "6931e77a000000001e033f7b", "title": "珂润面霜今年入的很对很适合油皮冬季用", "ts": "2026-10-02 22:46:24", "status": "throttled", "error": "RiskError: HTTP 461 访问频繁 (/api/sns/web/v2/comment/page)", "sec": 0.4}
+{"note_id": "6931e77a000000001e033f7b", "title": "珂润面霜今年入的很对很适合油皮冬季用", "ts": "2026-10-02 23:12:20", "status": "throttled", "error": "RiskError: 1 个楼的楼中楼未取全（共缺 3 条），疑似被限流", "sec": 73.2}
+{"note_id": "6a7ebdfe00000000080122b8", "title": "后悔没早知道白绷带还能这么用！！！！！！", "ts": "2026-10-02 23:18:54", "status": "throttled", "error": "RiskError: HTTP 461 访问频繁 (/api/sns/web/v2/comment/page)", "sec": 17.1}
+{"note_id": "6a35d622000000001003c523", "title": "空瓶︳兰蔻超修小黑瓶115ml", "ts": "2026-10-02 23:26:14", "status": "throttled", "error": "RiskError: HTTP 461 访问频繁 (/api/sns/web/v2/comment/page)", "sec": 14.7}

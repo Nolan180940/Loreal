@@ -1,0 +1,14 @@
+{
+  "note_id": "6a957d1f000000002003a171",
+  "top_level": 10,
+  "replies": 0,
+  "total": 10,
+  "note_reported": 110,
+  "note_reported_known": true,
+  "matched": false,
+  "diff": 100,
+  "partial": true,
+  "pages_fetched": 1,
+  "images_downloaded": 4,
+  "source": "browser_dom"
+}
