@@ -2,8 +2,8 @@
 
 匿名免登录采集小红书笔记：**文案 / 图片 / 评论**。
 
-核心链路不依赖浏览器 —— 只用 Python 标准库 `urllib`，
-不需要 Playwright、不需要 Chromium、不需要 cookie、不需要登录。
+只用 Python 标准库 `urllib` —— 不需要浏览器、不需要 Playwright、
+不需要 cookie、不需要登录。
 
 ---
 
@@ -14,25 +14,24 @@ cd xhs-cli
 D:\LOreal-ai\.venv\Scripts\python.exe -m pip install -e . --no-deps
 ```
 
-`--no-deps` 是有意的：HTTP 链路只用标准库。
-（`pyproject.toml` 里声明的 `playwright` / `curl_cffi` 只服务已废弃的浏览器链路。）
+`--no-deps` 是有意的：只用标准库，不需要装任何东西。
 
 ---
 
 ## Quick Start
 
 ```powershell
-# 1. 解析一个链接，人读输出
+# 人读输出
 python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp"
 
-# 2. 落盘成 JSON（GBK 控制台看中文会乱码，读文件最省事）
+# 存成 JSON 文件（推荐 —— Windows 控制台看中文会乱码，读文件最省事）
 python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 
-# 3. 只要 JSON，打到屏幕
+# JSON 打到屏幕
 python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --json
 ```
 
-支持四种链接写法：
+链接支持四种写法：
 
 | 形态 | 例子 |
 |---|---|
@@ -46,54 +45,50 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --json
 
 ---
 
+## 命令与参数
+
+只有 `parse` 一个命令。
+
+```powershell
+python -m xhs_cli parse "<链接>"
+```
+
+| 位置/参数 | 必填 | 默认 | 说明 |
+|---|---|---|---|
+| `link` | ✅ | — | 小红书短链或长链 |
+| `--json` | | 关 | 输出机器可读 JSON |
+| `--save FILE` | | 无 | 把 JSON 写进文件 |
+
+退出码：`0` 成功 · `2` 链接不支持 · `3` 抓取失败。
+
+> ⚠️ 已知问题：`--json` 与 `--save` **同时用时不落盘**（`--save` 的判断
+> 被写在了 `else` 分支里）。要存文件就**别加 `--json`**。
+>
+> ⚠️ `parse` **不下载图片**，也不产出目录 —— 它只给出图片 URL。
+
+---
+
 ## 架构
 
 ```
 xhs-cli/src/xhs_cli/
-  core/                ★ HTTP 直连链路（在用）
-    link.py            链接归一化：短链/长链/缺协议 → LinkRef
-    fetch.py           urllib 直连 + 手机 UA
-    ssr.py             HTML → 结构化字段
-    ssr_json.py        括号配对提取嵌套数组（评论 / tagList）
-    service.py         parse_link()：重试 + 换 token
-  storage/layout.py    目录化落盘布局
-  cli.py               命令行入口
-  page.py              浏览器链路（已废弃，见下）
-  extractors/          浏览器链路的字段归一化
-  share.py             短链展开（浏览器版）
-  audit.py             完整性审计
+  core/                 ★ 采集链路（只用标准库）
+    link.py             链接归一化：短链 / 长链 / 缺协议 → LinkRef
+    fetch.py            urllib 直连 + 手机 UA
+    ssr.py              HTML → 结构化字段
+    ssr_json.py         括号配对提取嵌套数组（评论 / tagList）
+    service.py          parse_link()：重试 + 换 token
+  cli.py                命令行入口
 ```
-
-### 两条链路
 
 ```mermaid
-graph TB
-    subgraph HTTP["core/ — HTTP 直连 ✅ 在用"]
-        A1[链接] --> A2[link.normalize]
-        A2 --> A3[fetch.expand<br/>urllib 取新鲜 xsec_token]
-        A3 --> A4[fetch.fetch_html<br/>手机 UA 取详情页]
-        A4 --> A5[ssr.parse]
-        A5 --> A6[note / images / comments]
-    end
-    subgraph PW["page.py — 浏览器 ❌ 已废弃"]
-        B1[链接] --> B2[启动 Chromium]
-        B2 --> B3[预热首页]
-        B3 --> B4[打开详情页]
-        B4 --> B5[读 __INITIAL_STATE__]
-        B5 -.->|302 跳登录| BX[失败]
-    end
+graph LR
+    A[链接] --> B[link.normalize]
+    B --> C[fetch.expand<br/>urllib 取新鲜 xsec_token]
+    C --> D[fetch.fetch_html<br/>手机 UA 取详情页]
+    D --> E[ssr.parse<br/>正则 + 括号配对]
+    E --> F[note / images / comments]
 ```
-
-| | `core/`（HTTP 直连） | `page.py`（浏览器） |
-|---|---|---|
-| 依赖 | 仅标准库 | playwright + chromium |
-| 状态 | ✅ 在用 | ❌ 已被风控识别 |
-| 入口 | `parse` 子命令 | `--url` / `--input` |
-| 落盘 | `--save FILE` | `--out DIR` |
-
-2026-10-10 实测：Playwright 的 TLS 指纹被小红书识别，
-headless 与有头真 Chrome 全部 302 跳登录页；而 `urllib` + 手机 UA 直连成功。
-所以浏览器链路不是「调参能救」，是路线本身不可用。它暂时保留，仅在人工排查时用。
 
 ---
 
@@ -147,64 +142,13 @@ HTTP 直连
 
 ---
 
-## 命令与参数
-
-### `parse` —— HTTP 直连（在用）
-
-```powershell
-python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp"
-```
-
-| 位置/参数 | 必填 | 默认 | 说明 |
-|---|---|---|---|
-| `link` | ✅ | — | 小红书短链或长链 |
-| `--json` | | 关 | 输出机器可读 JSON |
-| `--save FILE` | | 无 | 同时把 JSON 写进文件 |
-
-> ⚠️ `parse` **没有** `--out`，也不下载图片 —— 它只输出图片 URL。
-> 想落成目录用主命令（见下）。
->
-> ⚠️ 已知问题：`--json` 与 `--save` **同时用时不落盘**
-> （`--save` 的判断被写在了 `else` 分支里）。
-> 要存文件就别加 `--json`：`parse "<链接>" --save note.json`。
-
-退出码：`0` 成功 · `2` 链接不支持 · `3` 抓取失败。
-
-### 主命令 —— 浏览器链路（引擎已废弃）
-
-```powershell
-python -m xhs_cli --url "<链接>"          # 单篇
-python -m xhs_cli --input urls.txt        # 链接清单（每行一个，# 开头为注释）
-python -m xhs_cli --audit-only            # 只审计已有数据
-```
-
-| 参数 | 默认 | 说明 |
-|---|---|---|
-| `--url URL` | 无 | 单个分享链接 |
-| `--input FILE` | 无 | 链接清单文件 |
-| `--out DIR` | `xhs-cli/xhs_data` | 输出根目录 |
-| `--skip-images` | 关 | 不下载图片 |
-| `--audit-only` | 关 | 只审计已有数据，不抓取 |
-| `--proxy URL` | 无 | 如 `http://127.0.0.1:7890` |
-| `--sleep N` | `2.0` | 篇间间隔（秒） |
-| `--engine` | `chromium` | `chrome` = 用本机 Chrome |
-| `--no-headless` | 关 | 显示浏览器窗口（调试） |
-| `--cookies FILE` | 无 | 注入 cookie（**非匿名模式**） |
-| `--version` | | 打印版本 |
-
----
-
 ## 输出
-
-### A. `parse` 的 JSON
-
-一行命令：
 
 ```powershell
 python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 ```
 
-`note.json` 结构（值为真实抓取结果，非示例编造）：
+`note.json` 结构（真实抓取结果）：
 
 ```jsonc
 {
@@ -216,11 +160,11 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
     "author": "胦鱼",
     "author_id": "667659460000000007007fc4",
     "ip_location": "",              // ⚠️ 匿名态拿不到，见「字段可用性」
-    "liked": "7546",                // 全部为字符串
+    "liked": "7546",                // 计数都是字符串
     "collected": "618",
     "comment_count": "523",         // 页面声明的总数（一级 + 楼中楼）
     "comment_count_l1": "226",      // 其中一级评论数
-    "share": "176",                 // ⚠️ 这里叫 share，不是 share_count
+    "share": "176",
     "time_ms": "1791215604000",     // 毫秒时间戳（字符串）
     "tags": ["我在小红书聊心理", "学生压力大", "…", "笔记", "我在小红书聊心理", "…"],
     "images": ["http://sns-webpic-qc.xhscdn.com/…!h5_1080jpg"]
@@ -269,37 +213,16 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 | `comments` 顺序 | 一级评论 + 其楼中楼紧跟其后，非严格时间序 |
 | `complete` | `got >= declared`；匿名态几乎总是 `false` |
 
-### B. 主命令的目录结构
-
-```powershell
-python -m xhs_cli --url "<链接>" --out my_data
-```
-
-```
-my_data/<note_id>/
-  content/note.json       标题/正文/互动数/作者/标签
-  content/note.md         人读版
-  images/urls.json        图片 URL 清单（按原顺序）
-  images/01.jpg ...       下载的图片，序号与 urls.json 对齐
-  comments/comments.json  扁平列表：一级 + 楼中楼（带 _is_reply）
-  comments/card.json      统计卡片，含 partial 标记
-```
-
-> 这套 `note.json` 用的是**另一套键名**（`share_count` / `published`），
-> 与 A 形态的 `share` / `time_ms` 不一致。
-> 下游读数据时要同时兼容两套。参考 `jev/src/jev_guard/extractors/reader.py`
-> 的 `FIELD_ALIASES`。
-
 ---
 
-## 字段可用性（2026-10-10 实测）
+## 字段可用性（2026-10-11 实测）
 
 | 数据 | 状态 | 说明 |
 |---|---|---|
 | 标题 / 正文 | ✅ | 需有效 token |
-| 话题标签 | ⚠️ | **有重复**（见「已知问题」） |
+| 话题标签 | ⚠️ | **有重复项**（见「已知问题」） |
 | 图片 URL | ✅ | 同一张图在 SSR 里有多个 CDN 变体，已去重 |
-| 帖子点赞 / 收藏 / 评论数 / 分享数 | ✅ | 部分笔记不公开该数字，此时返回空串 |
+| 帖子点赞 / 收藏 / 评论数 / 分享数 | ✅ | 部分笔记不公开该数字，此时为空串 |
 | 发布时间 | ✅ | `time_ms` |
 | 作者昵称 / ID | ✅ | |
 | **作者 IP 属地** | ❌ | note 区**没有任何** IP 字段 |
@@ -336,7 +259,7 @@ my_data/<note_id>/
 |---|---|---|
 | 1 | `tags` 有重复项，且混入假标签「笔记」 | 该字段不能直接用 |
 | 2 | `--json --save FILE` 不落盘 | 存文件时别加 `--json` |
-| 3 | `--out` 只在主命令有，`parse` 没有 | 想落目录得用主命令（但引擎已废弃） |
+| 3 | `parse` 不下载图片、不产出目录 | 只给 URL |
 
 **问题 1 的成因**：`ssr.parse_note` 用全局正则 `"name":"…"` 取标签，两个后果 ——
 
@@ -344,7 +267,11 @@ my_data/<note_id>/
 - `tagList` 在 SSR 内联与水合数据里各存一份，于是每项重复两遍。
 
 实测一帖 4 个真标签会输出 9 项：
-`['我在小红书聊心理', '学生压力大', '教育理念的重要性', '以学生为中心', '笔记', '我在小红书聊心理', '学生压力大', '教育理念的重要性', '以学生为中心']`
+
+```python
+['我在小红书聊心理', '学生压力大', '教育理念的重要性', '以学生为中心',
+ '笔记', '我在小红书聊心理', '学生压力大', '教育理念的重要性', '以学生为中心']
+```
 
 **临时处理**：读之前先清洗 ——
 
