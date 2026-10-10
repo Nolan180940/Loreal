@@ -3,7 +3,7 @@
   "评论数量": "36",
   "分享数量": "9",
   "点赞数量": "41",
-  "作品标签": "",
+  "作品标签": "笔记",
   "作品ID": "6a12d06d000000000702b6ec",
   "作品链接": "https://www.xiaohongshu.com/explore/6a12d06d000000000702b6ec?xsec_token=ABSu27CdiFGnjYdcP46mgu02xboEef1lbRgKuOEMRIOZA=&xsec_source=pc_search",
   "作品标题": "兰蔻小黑瓶精华价格",
@@ -23,5 +23,27 @@
     null,
     null
   ],
-  "封面地址": null
+  "封面地址": null,
+  "note_id": "6a12d06d000000000702b6ec",
+  "title": "兰蔻小黑瓶精华价格",
+  "desc": "不懂就问，为啥得物100ml和50mlx2的价格差那么多呢，我最后在🍑旗舰店拍的，图二价格是否划算呀",
+  "tags": [
+    "笔记"
+  ],
+  "author": "Lydia",
+  "author_id": "5f2053dc000000000100bcfa",
+  "author_link": "https://www.xiaohongshu.com/user/profile/5f2053dc000000000100bcfa",
+  "link": "https://www.xiaohongshu.com/explore/6a12d06d000000000702b6ec?xsec_token=ABSu27CdiFGnjYdcP46mgu02xboEef1lbRgKuOEMRIOZA=&xsec_source=pc_search",
+  "published": "2026-05-24 18:18:21",
+  "time_ms": 1779617901000,
+  "liked": 43,
+  "collected": 10,
+  "comment_count": 37,
+  "share_count": 10,
+  "image_count": 2,
+  "images": [
+    "http://sns-webpic-qc.xhscdn.com/202610102233/2a01e102d16eda926d47b6f7d2e09746/notes_pre_post/1040g3k0320i23ih1m8005np0afe09f7qvc6ujgo!h5_1080jpg",
+    "http://sns-webpic-qc.xhscdn.com/202610102233/f0254fde81125abc720ecab0882c0bfa/notes_pre_post/1040g3k0320i23ih1m80g5np0afe09f7qa35p3t0!h5_1080jpg"
+  ],
+  "source": "xhs-cli/core"
 }

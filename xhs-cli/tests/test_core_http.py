@@ -17,11 +17,18 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]
-                      / "xhs-cli" / "src"))
+# 本文件在 xhs-cli/tests/ 下，包在 xhs-cli/src/xhs_cli/。
+# 同时容忍被从仓库根目录调用（那时多一层）。
+_HERE = Path(__file__).resolve()
+for _p in (_HERE.parents[1] / "src",                 # <repo>/xhs-cli/src
+           _HERE.parents[2] / "xhs-cli" / "src"):    # 兜底
+    if _p.is_dir() and str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
 from xhs_cli.core.link import LinkRef, normalize  # noqa: E402
-from xhs_cli.core.ssr import parse, prepare, unescape  # noqa: E402
+from xhs_cli.core.ssr import (  # noqa: E402
+    _dedupe_images, _img_key, parse, prepare, unescape,
+)
 from xhs_cli.core.ssr_json import (  # noqa: E402
     _extract_array, _norm_like, flatten, parse_comments_json,
 )
@@ -183,3 +190,75 @@ def test_parse_falls_back_when_json_broken() -> None:
     r = parse(broken)
     assert r["got"] >= 1
     assert any(c["content"].startswith("第一") for c in r["comments"])
+
+
+# --------------------------------------------------------------- 图片去重
+#: 实测的 URL 形态（来自 6ab8e804）：同一张图两个 CDN 变换。
+#: 注意 ``!`` 之前的 hash 目录**不同** —— 所以去重键必须取最后一段。
+_IMG_A_H5 = ("http://sns-webpic-qc.xhscdn.com/202610102233/503ad482"
+             "/notes_pre_post/1040g3kAAA!h5_1080jpg")
+_IMG_A_STYLE = ("http://sns-webpic-qc.xhscdn.com/202610102233/ebac7d36"
+                "/notes_pre_post/1040g3kAAA!style_d4c824bab532bfe9")
+_IMG_B_H5 = ("http://sns-webpic-qc.xhscdn.com/202610102233/245e39b7"
+             "/notes_pre_post/1040g3kBBB!h5_1080jpg")
+_IMG_B_STYLE = ("http://sns-webpic-qc.xhscdn.com/202610102233/83641bad"
+                "/notes_pre_post/1040g3kBBB!style_d4c824bab532bfe9")
+
+
+def test_img_key_uses_last_segment_not_hash_dir() -> None:
+    """两个变体的 ``!`` 前路径不同，但图片 ID 必须相同。"""
+    assert _img_key(_IMG_A_H5) == _img_key(_IMG_A_STYLE) == "1040g3kAAA"
+    assert _img_key(_IMG_A_H5) != _img_key(_IMG_B_H5)
+
+
+#: 旧采集产物的形态：查询串 ``format/jpeg`` 里**含斜杠**。
+#: 不先切掉 ``?`` 就会把整批图片都算成 ``"jpeg"``，误合成一张。
+_IMG_OLD_A = ("https://ci.xiaohongshu.com/notes_pre_post/1040g3kAAA"
+              "?imageView2/format/jpeg")
+_IMG_OLD_B = ("https://ci.xiaohongshu.com/notes_pre_post/1040g3kBBB"
+              "?imageView2/format/jpeg")
+
+
+def test_img_key_ignores_slash_inside_query() -> None:
+    """回归：``?imageView2/format/jpeg`` 曾让 7 张图被误合成 1 张。"""
+    assert _img_key(_IMG_OLD_A) == "1040g3kAAA"
+    assert _img_key(_IMG_OLD_B) == "1040g3kBBB"
+    assert len(_dedupe_images([_IMG_OLD_A, _IMG_OLD_B])) == 2
+
+
+def test_img_key_unifies_both_url_shapes() -> None:
+    """同一张图的 sns-webpic 形态与 ci 形态必须归一到同一个 key。"""
+    assert _img_key(_IMG_A_H5) == _img_key(_IMG_OLD_A) == "1040g3kAAA"
+
+
+def test_dedupe_images_halves_the_count() -> None:
+    """实测 6ab8e804 是 14 个 URL / 7 张图 —— 不去重会翻倍。"""
+    urls = [_IMG_A_H5, _IMG_A_STYLE, _IMG_B_H5, _IMG_B_STYLE]
+    assert len(_dedupe_images(urls)) == 2
+
+
+def test_dedupe_prefers_display_variant() -> None:
+    """``!style_*`` 是样式预览版，要选 h5 展示版。"""
+    assert _dedupe_images([_IMG_A_STYLE, _IMG_A_H5]) == [_IMG_A_H5]
+    # 反过来给也一样
+    assert _dedupe_images([_IMG_A_H5, _IMG_A_STYLE]) == [_IMG_A_H5]
+
+
+def test_dedupe_keeps_style_when_it_is_the_only_one() -> None:
+    assert _dedupe_images([_IMG_A_STYLE]) == [_IMG_A_STYLE]
+
+
+def test_dedupe_preserves_first_seen_order() -> None:
+    """去重后保持首次出现的顺序 —— 图片顺序就是帖子里的顺序。"""
+    urls = [_IMG_B_H5, _IMG_A_STYLE, _IMG_A_H5, _IMG_B_STYLE]
+    assert _dedupe_images(urls) == [_IMG_B_H5, _IMG_A_H5]
+
+
+def test_parse_note_images_deduped() -> None:
+    """端到端：``parse()`` 出来的 images 必须是去重后的张数。"""
+    html = (
+        '"noteId":"6ab8e804000000000200d3cd","title":"t","desc":"d",'
+        f'"url":"{_IMG_A_H5}","url":"{_IMG_A_STYLE}",'
+        f'"url":"{_IMG_B_H5}","url":"{_IMG_B_STYLE}"'
+    )
+    assert len(parse(html)["note"]["images"]) == 2

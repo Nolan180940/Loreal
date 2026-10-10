@@ -3,7 +3,7 @@
   "评论数量": "8",
   "分享数量": "34",
   "点赞数量": "48",
-  "作品标签": "",
+  "作品标签": "笔记",
   "作品ID": "6931e77a000000001e033f7b",
   "作品链接": "https://www.xiaohongshu.com/explore/6931e77a000000001e033f7b?xsec_token=AB8g2cxfHZQtfBducDM2oh2ZtrVHVpOH3zv-hChUsKt1M=&xsec_source=pc_search",
   "作品标题": "珂润面霜今年入的很对很适合油皮冬季用",
@@ -25,5 +25,30 @@
     null,
     null
   ],
-  "封面地址": null
+  "封面地址": null,
+  "note_id": "6931e77a000000001e033f7b",
+  "title": "珂润面霜今年入的很对很适合油皮冬季用",
+  "desc": "我没有用过老版的，一开始买就是今年买的新版，用的觉得脸上没有那种油油的，但是是保湿的早上起来也是保湿，不算难受，然后涂抹也非常的容易。\n我觉得对于油皮冬季来说，这个面霜真的很舒适。\n皮肤用的很稳定，没有出现什么刺痛的情况，果然，这种药妆类的品牌还是很温和。",
+  "tags": [
+    "笔记"
+  ],
+  "author": "瑶妹妹",
+  "author_id": "5c5145a0000000001201d458",
+  "author_link": "https://www.xiaohongshu.com/user/profile/5c5145a0000000001201d458",
+  "link": "https://www.xiaohongshu.com/explore/6931e77a000000001e033f7b?xsec_token=AB8g2cxfHZQtfBducDM2oh2ZtrVHVpOH3zv-hChUsKt1M=&xsec_source=pc_search",
+  "published": "2025-12-05 03:56:42",
+  "time_ms": 1764878202000,
+  "ip_location": "江苏",
+  "liked": 54,
+  "collected": 16,
+  "comment_count": 8,
+  "share_count": 36,
+  "image_count": 3,
+  "images": [
+    "http://sns-webpic-qc.xhscdn.com/202610102233/5f8ed9fbbdc03230809ce080bc07570a/notes_pre_post/1040g3k031pmcvvnh4k305n2h8mg4jl2op7v3ngg!h5_1080jpg",
+    "http://sns-webpic-qc.xhscdn.com/202610102233/59fe51d63ac8dcb254c202bbe911b8ec/notes_pre_post/1040g3k031pmcvvnh4k5g5n2h8mg4jl2olhq7dm0!h5_1080jpg",
+    "http://sns-webpic-qc.xhscdn.com/202610102233/3f83638169ed0b360bab1204854330ef/notes_pre_post/1040g3k031pmcvvnh4k505n2h8mg4jl2o3giekbo!h5_1080jpg"
+  ],
+  "source": "xhs-cli/core",
+  "IP属地": "江苏"
 }

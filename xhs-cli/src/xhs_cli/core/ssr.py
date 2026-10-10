@@ -75,6 +75,57 @@ AFTER_WINDOW = 400
 #: 取 600 兼顾两者，又不至于跨到相邻评论。
 MAX_PAIR_DIST = 600
 
+#: 图片 URL。手机 UA 的 SSR 里字段名是 ``url``（PC 里叫 ``urlDefault``）。
+_IMG_RE = re.compile(r'"url":"(https?://[^"]*sns-webpic[^"]+)"')
+
+
+def _img_key(u: str) -> str:
+    """图片稳定标识 = 去掉查询串与变换后缀后的**最后一段路径**。
+
+    两个坑，都会导致去重键退化：
+
+    1. **CDN 变换后缀**：同一张图的不同变换 hash 目录不同 ——
+
+        .../202610102233/503ad482.../notes_pre_post/1040g3kAAA!h5_1080jpg
+        .../202610102233/ebac7d36.../notes_pre_post/1040g3kAAA!style_xxx
+
+    2. **查询串里有斜杠**：旧采集产物用的是
+       ``.../1040g3kAAA?imageView2/format/jpeg``，若先 ``rsplit("/")``
+       会把整批图片都映射成 ``"jpeg"`` —— 实测会把 7 张图误合成 1 张。
+
+    所以必须**先切掉 ``?`` 与 ``!``**，再取最后一段。实测 `6ab8e804`：
+    14 个 sns-webpic URL 只有 **7** 个不同 ID —— 正是原帖的 7 张图。
+    """
+    path = u.split("?", 1)[0].split("!", 1)[0].rstrip("/")
+    return path.rsplit("/", 1)[-1]
+
+
+def _dedupe_images(urls: list[str]) -> list[str]:
+    """按图片 ID 去重，保留展示版。
+
+    **必须去重**：同一张图在 SSR 里会出现两次，只有 CDN 变换后缀不同
+    （``!h5_1080jpg`` 展示版 + ``!style_*`` 样式预览版）。
+    不去重的话 ``image_count`` 是真实张数的 **两倍**。
+
+    变体取舍：``style_*`` 是样式预览版，其余（``h5_1080jpg`` 等）
+    是展示版，优先保留展示版。
+    """
+    order: list[str] = []
+    best: dict[str, str] = {}
+    for u in urls:
+        key = _img_key(u)
+        if not key:
+            continue
+        if key not in best:
+            best[key] = u
+            order.append(key)
+            continue
+        cur_suffix = best[key].split("!")[-1]
+        new_suffix = u.split("!")[-1]
+        if cur_suffix.startswith("style_") and not new_suffix.startswith("style_"):
+            best[key] = u
+    return [best[k] for k in order]
+
 
 def prepare(html: str) -> str:
     """只反转义斜杠，让 URL 与路径类字段可用。
@@ -130,11 +181,9 @@ def parse_note(html: str) -> dict[str, Any]:
     desc_m = re.search(r'"desc":"((?:[^"\\]|\\.)*)"', h)
     desc = unescape(desc_m.group(1)) if desc_m else ""
 
-    # 图片：字段叫 url（PC SSR 里叫 urlDefault，手机 UA 这份只有 url）
-    images: list[str] = []
-    for u in re.findall(r'"url":"(https?://[^"]*sns-webpic[^"]+)"', h):
-        if u not in images:
-            images.append(u)
+    # 图片：同一张图在 SSR 里会出现多次（不同 CDN 变体），必须去重，
+    # 否则 image_count 翻倍。详见 _dedupe_images。
+    images = _dedupe_images(_IMG_RE.findall(h))
 
     return {
         "note_id": grab(h, "noteId"),

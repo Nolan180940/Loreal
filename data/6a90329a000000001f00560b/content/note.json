@@ -23,5 +23,45 @@
     null,
     null
   ],
-  "封面地址": null
+  "封面地址": null,
+  "note_id": "6a90329a000000001f00560b",
+  "title": "薅羊毛这几个值得入手吗。",
+  "desc": "HR赫莲娜黑白绷带这价格值得吗。\n#赫莲娜面霜[话题]# #黑绷带[话题]# #白绷带面霜[话题]# #高端护肤[话题]# #HR[话题]# #赫莲娜[话题]# @薯条小助手 #过期羊毛犹如砒霜[话题]# #想剁手还是要听劝[话题]# #能买得起但舍不得买[话题]#",
+  "tags": [
+    "赫莲娜面霜",
+    "黑绷带",
+    "白绷带面霜",
+    "高端护肤",
+    "HR",
+    "赫莲娜",
+    "过期羊毛犹如砒霜",
+    "想剁手还是要听劝",
+    "能买得起但舍不得买",
+    "笔记",
+    "赫莲娜面霜",
+    "黑绷带",
+    "白绷带面霜",
+    "高端护肤",
+    "HR",
+    "赫莲娜",
+    "过期羊毛犹如砒霜",
+    "想剁手还是要听劝",
+    "能买得起但舍不得买"
+  ],
+  "author": "家电家居情报站-毛小鱼",
+  "author_id": "5ea9245900000000010051cf",
+  "author_link": "https://www.xiaohongshu.com/user/profile/5ea9245900000000010051cf",
+  "link": "https://www.xiaohongshu.com/explore/6a90329a000000001f00560b?xsec_token=AB_4ikekakT-Vs2CiACuFKc09wYNOi9gr4gXyEEDcuLtQ=&xsec_source=pc_search",
+  "published": "2026-08-27 20:50:34",
+  "time_ms": 1787835034000,
+  "liked": 3,
+  "collected": 1,
+  "comment_count": 6,
+  "share_count": 6,
+  "image_count": 2,
+  "images": [
+    "http://sns-webpic-qc.xhscdn.com/202610102233/c2749e550491664e8f3111524fe72966/notes_pre_post/1040g3k0324cg9hgc0a0g5nl94hcg8kefq7jsqn0!h5_1080jpg",
+    "http://sns-webpic-qc.xhscdn.com/202610102233/2d0d9ac58dfbf13d45d89417ad7d5d6c/notes_pre_post/1040g3k0324cg9hgc0a105nl94hcg8kefk4877qg!h5_1080jpg"
+  ],
+  "source": "xhs-cli/core"
 }

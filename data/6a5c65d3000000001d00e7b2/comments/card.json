@@ -1,0 +1,14 @@
+{
+  "note_id": "6a5c65d3000000001d00e7b2",
+  "note_reported": 273,
+  "reported_known": true,
+  "top_level": 99,
+  "replies": 150,
+  "total": 249,
+  "matched": false,
+  "diff": 24,
+  "thread_fill_calls": 0,
+  "thread_gaps": [],
+  "anon_partial": true,
+  "source": "xhs-cli/core"
+}

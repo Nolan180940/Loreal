@@ -21,5 +21,29 @@
   "动图地址": [
     null
   ],
-  "封面地址": null
+  "封面地址": null,
+  "note_id": "6abcc08e000000000b004902",
+  "title": "好消息:掉盒子了，坏消息:是壁纸😅",
+  "desc": "#惊喜盒子[话题]# #雅诗兰黛小棕瓶[话题]#",
+  "tags": [
+    "惊喜盒子",
+    "雅诗兰黛小棕瓶",
+    "笔记",
+    "惊喜盒子",
+    "雅诗兰黛小棕瓶"
+  ],
+  "author": "此momo非彼momo",
+  "author_id": "5aaf8b67e8ac2b1913e41fe3",
+  "author_link": "https://www.xiaohongshu.com/user/profile/5aaf8b67e8ac2b1913e41fe3",
+  "link": "https://www.xiaohongshu.com/explore/6abcc08e000000000b004902?xsec_token=ABdUWRv6N5fFtsvtxXlyW0dIdSK8PxXaZ2JjVW9crcKEI=&xsec_source=pc_search",
+  "published": "2026-09-30 15:55:58",
+  "time_ms": 1790754958000,
+  "liked": 129,
+  "collected": 32,
+  "comment_count": 35,
+  "image_count": 1,
+  "images": [
+    "http://sns-webpic-qc.xhscdn.com/202610102226/54f85d371fdde293b31f43b999cca5b2/1040g2sg325o0mj3n566g4a3nmb5me7v3d9b9gcg!h5_1080jpg"
+  ],
+  "source": "xhs-cli/core"
 }

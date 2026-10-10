@@ -56,16 +56,21 @@ def _extract_array(text: str, start: int) -> tuple[int, int] | None:
     return None
 
 
-def parse_comments_json(html: str) -> list[dict[str, Any]] | None:
-    """括号配对 + json.loads。失败返回 None（让调用方退化到正则）。"""
+def parse_comments_raw(html: str) -> list[dict[str, Any]] | None:
+    """括号配对 + json.loads，返回**未归一化**的原始评论数组。
+
+    与 :func:`parse_comments_json` 的区别：这个不做字段名映射，
+    保留 SSR 原样的 ``id`` / ``user`` / ``subComments`` / ``ipLocation``。
+    给需要原字段的下游用（例如回填历史 ``data/`` 目录，
+    其 ``comments.json`` 用的是 API 侧字段名 ``user_info`` /
+    ``create_time``，归一化后的扁平结构丢失了这两项，写进去下游读不到）。
+    """
     h = prepare(html)
 
-    # 定位 commentData
     cd = h.find('"commentData"')
     if cd < 0:
         return None
 
-    # 在 commentData 之后找 "comments":[
     m = re.compile(r'"comments"\s*:\s*\[').search(h, cd)
     if not m:
         return None
@@ -74,18 +79,24 @@ def parse_comments_json(html: str) -> list[dict[str, Any]] | None:
     if not span:
         return None
 
-    raw = h[span[0]:span[1]]
     try:
-        data = json.loads(raw)
+        data = json.loads(h[span[0]:span[1]])
     except json.JSONDecodeError:
         return None
     if not isinstance(data, list):
         return None
 
+    return [c for c in data if isinstance(c, dict)]
+
+
+def parse_comments_json(html: str) -> list[dict[str, Any]] | None:
+    """括号配对 + json.loads。失败返回 None（让调用方退化到正则）。"""
+    data = parse_comments_raw(html)
+    if data is None:
+        return None
+
     rows: list[dict[str, Any]] = []
     for c in data:
-        if not isinstance(c, dict):
-            continue
         u = c.get("user") or {}
         rows.append({
             "user_id": str(u.get("userId") or u.get("user_id") or ""),

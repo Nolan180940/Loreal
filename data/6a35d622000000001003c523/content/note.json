@@ -3,7 +3,7 @@
   "评论数量": "40",
   "分享数量": "11",
   "点赞数量": "40",
-  "作品标签": "",
+  "作品标签": "笔记",
   "作品ID": "6a35d622000000001003c523",
   "作品链接": "https://www.xiaohongshu.com/explore/6a35d622000000001003c523?xsec_token=ABP_DKZlUvsPk6EeTApRbCTthXVL9pPpSzBBW5JYdVmg0=&xsec_source=pc_search",
   "作品标题": "空瓶︳兰蔻超修小黑瓶115ml",
@@ -21,5 +21,26 @@
   "动图地址": [
     null
   ],
-  "封面地址": null
+  "封面地址": null,
+  "note_id": "6a35d622000000001003c523",
+  "title": "空瓶︳兰蔻超修小黑瓶115ml",
+  "desc": "太大瓶了[捂脸R]，开封了一年多才用完，因为对于我来说，它很清爽，到了冬天会用滋润的精华，就放了几个月没用。不知道会不会回购，感觉性价比不是很高",
+  "tags": [
+    "笔记"
+  ],
+  "author": "小小梨🍐",
+  "author_id": "5768b1a95e87e75541bfc558",
+  "author_link": "https://www.xiaohongshu.com/user/profile/5768b1a95e87e75541bfc558",
+  "link": "https://www.xiaohongshu.com/explore/6a35d622000000001003c523?xsec_token=ABP_DKZlUvsPk6EeTApRbCTthXVL9pPpSzBBW5JYdVmg0=&xsec_source=pc_search",
+  "published": "2026-06-20 07:52:02",
+  "time_ms": 1781913122000,
+  "liked": 56,
+  "collected": 14,
+  "comment_count": 43,
+  "share_count": 12,
+  "image_count": 1,
+  "images": [
+    "http://sns-webpic-qc.xhscdn.com/202610102233/a3a02f0ac2fc89ad868165e7d95e6518/1040g008321k8i0enn40g48gqv4oqjhaog2degi0!h5_1080jpg"
+  ],
+  "source": "xhs-cli/core"
 }

@@ -1,14 +1,14 @@
 {
   "note_id": "6abb030f000000001803b3e0",
-  "top_level": 10,
-  "replies": 0,
-  "total": 10,
   "note_reported": 469,
-  "note_reported_known": true,
+  "reported_known": true,
+  "top_level": 13,
+  "replies": 5,
+  "total": 18,
   "matched": false,
-  "diff": 459,
-  "partial": true,
-  "pages_fetched": 1,
-  "images_downloaded": 2,
-  "source": "browser_dom"
+  "diff": 451,
+  "thread_fill_calls": 0,
+  "thread_gaps": [],
+  "anon_partial": true,
+  "source": "xhs-cli/core"
 }
