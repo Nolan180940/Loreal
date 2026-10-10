@@ -86,6 +86,16 @@ def expand(link: str, *, ua: str = DEFAULT_UA, timeout: int = 15) -> str:
     if "/login" in final:
         raise FetchError(
             "短链被重定向到登录页（UA 可能被风控）", kind="expand_login")
+    # 风控的另一种表现：跳验证码页。
+    # 实测落点是 ``/website-login/captcha?redirectPath=...&verifyType=217
+    # &verifyBiz=461`` —— 注意它是 ``website-login``，**不含** ``/login``，
+    # 所以上面那个检查拦不住；而 ``redirectPath`` 里那把未用的 token 是
+    # URL 编码的（``xsec_token%3D``），也匹配不上 ``xsec_token=``。
+    # 两个检查都过 → 一个验证码页被当成正常页返回。
+    if "/captcha" in final or "verifyBiz=" in final:
+        raise FetchError(
+            "短链被重定向到验证码页（该 UA 已被风控）",
+            kind="expand_captcha")
     if "xsec_token=" not in final:
         raise FetchError(
             "展开结果里没有 xsec_token，无法读取详情页", kind="expand_no_token")

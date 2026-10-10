@@ -39,31 +39,47 @@ def _sleep(seconds: float) -> None:
         time.sleep(seconds)
 
 
-def _attempt(ref: LinkRef) -> tuple[dict[str, Any], str]:
+def _attempt(ref: LinkRef, ua: str) -> tuple[dict[str, Any], str]:
     """单次尝试。返回 (解析结果, 实际用的完整 URL)。
 
     短链每次尝试都重新展开 —— 这正是它能绕过 token 失效的原因。
+
+    ``ua`` 必须往下传：之前这个参数没串进来，``parse_link(ua=...)``
+    是死代码，整条链路只能用默认 UA。
     """
     if ref.needs_expand:
-        url = fetch.expand(ref.raw)
+        url = fetch.expand(ref.raw, ua=ua)
     else:
         url = ref.url
 
-    html = fetch.fetch_html(url)
+    html = fetch.fetch_html(url, ua=ua)
     parsed = ssr.parse(html)
     ssr.validate(parsed)          # 空壳直接抛，触发重试
     return parsed, url
 
 
-def parse_link(raw: str, *, ua: str = fetch.DEFAULT_UA,
+#: 需要**换 UA** 重试的 kind：这些都是「这个指纹被盯上了」。
+#:
+#: 注意与 461 区分：461 是评论分页接口的 IP + 接口滑窗配额，
+#: 换 UA 没用。这里管的是短链展开被跳登录/验证码。
+_UA_ROTATE_KINDS = ("expand_captcha", "expand_login", "expand_login_body")
+
+
+def parse_link(raw: str, *, ua: str | None = None,
                retries: int = len(BACKOFF) + 1) -> dict[str, Any]:
     """解析一个小红书链接，返回完整结构化数据。
+
+    Parameters
+    ----------
+    ua
+        指定 UA。**不传则在 :data:`fetch.MOBILE_UAS` 之间轮换** ——
+        单个 UA 被风控时换下一个继续，而不是原地重试到耗尽。
 
     Returns
     -------
     dict
         ``note`` / ``images`` / ``comments`` / ``declared`` / ``got`` /
-        ``complete`` / ``note_id`` / ``url`` / ``elapsed_ms``
+        ``complete`` / ``note_id`` / ``url`` / ``ua`` / ``elapsed_ms``
 
     Raises
     ------
@@ -76,9 +92,14 @@ def parse_link(raw: str, *, ua: str = fetch.DEFAULT_UA,
     t0 = time.monotonic()
     last: Exception | None = None
 
+    # 显式传 ua 就只用那一个（调试用）；否则轮换内置的全部 UA。
+    uas = [ua] if ua else list(fetch.MOBILE_UAS)
+    ua_idx = 0
+
     for attempt in range(max(1, retries)):
+        used_ua = uas[ua_idx % len(uas)]
         try:
-            parsed, url = _attempt(ref)
+            parsed, url = _attempt(ref, used_ua)
             note = parsed["note"]
             return {
                 "note": note,
@@ -91,11 +112,15 @@ def parse_link(raw: str, *, ua: str = fetch.DEFAULT_UA,
                 "note_id": note.get("note_id") or ref.note_id,
                 "url": url,
                 "kind": ref.kind,
+                "ua": used_ua,
                 "elapsed_ms": int((time.monotonic() - t0) * 1000),
                 "attempts": attempt + 1,
             }
         except FetchError as exc:
             last = exc
+            # UA 被风控：换下一个指纹（不额外退避，成本很低）
+            if exc.kind in _UA_ROTATE_KINDS:
+                ua_idx += 1
             # token 类失败：重新展开短链换新 token（不额外退避，成本很低）
             if exc.kind.startswith(("detail_http", "expand_no_token")):
                 ref = LinkRef(raw=ref.raw, kind="short", url=ref.raw)
