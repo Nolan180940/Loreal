@@ -29,6 +29,30 @@ DEFAULT_CONFIG_PATH = (
     Path(os.environ.get("USERPROFILE", "~")) / ".config" / "jev-guard" / "config.json"
 )
 
+#: 从本包位置向上找到的仓库根（含 ``data/`` 的那一层）。
+#: 本文件位于 ``<repo>/jev/src/jev_guard/core/config.py``，所以上溯 4 层。
+#:
+#: 存在的理由：``data_root`` 默认是相对路径 ``data``，而工具既能从仓库根
+#: （``python -m jev_guard ...``）也能从 ``jev/``（``python tools/audit_42.py``）
+#: 运行。后者会把 ``data`` 解析成 ``jev/data`` —— 一个不存在的目录，
+#: 于是 16 个工具会静默地统计出 0 篇笔记（曾导致 ``audit_42.py`` 除零崩溃）。
+REPO_ROOT = Path(__file__).resolve().parents[4]
+
+
+def resolve_rel(p: Path) -> Path:
+    """相对路径先按 CWD 解析；CWD 下不存在则回退到仓库根。
+
+    绝对路径原样返回。两条都不存在时返回 CWD 解析结果 —— 保留「路径不存在」
+    这个事实给调用方，而不是悄悄指到别的目录。
+    """
+    p = Path(p)
+    if p.is_absolute():
+        return p
+    if p.exists():
+        return p
+    candidate = REPO_ROOT / p
+    return candidate if candidate.exists() else p
+
 # opencode auth.json 的候选位置
 AUTH_CANDIDATES = (
     Path(os.environ.get("USERPROFILE", "~")) / ".local" / "share" / "opencode" / "auth.json",
@@ -117,7 +141,9 @@ class Config:
     use_comment_labels: bool = True   # 是否对评论也打标
 
     def __post_init__(self) -> None:
-        self.data_root = Path(self.data_root)
+        # 只对 data_root 做回退。out_dir 是**写**路径，静默改道会把产物
+        # 写到调用方没预期的目录，比报错更坑 —— 所以它保持按 CWD 解析。
+        self.data_root = resolve_rel(self.data_root)
         self.out_dir = Path(self.out_dir)
         if not self.api_key:
             self.api_key = resolve_api_key()
