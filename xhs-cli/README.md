@@ -24,11 +24,27 @@ D:\LOreal-ai\.venv\Scripts\python.exe -m pip install -e . --no-deps
 # 人读输出
 python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp"
 
-# 存成 JSON 文件（推荐 —— Windows 控制台看中文会乱码，读文件最省事）
+# 落成目录：<DIR>/<note_id>/{图片, notes.json}   ← 推荐
+python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --out data
+
+# 存成单个 JSON 文件（Windows 控制台看中文会乱码，读文件最省事）
 python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 
 # JSON 打到屏幕
 python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --json
+```
+
+抓两篇进同一个目录（`--out` 可重复用，每篇自己一个子目录）：
+
+```
+data/
+  6ac3c7f4000000001b02fc03/
+    01.jpg
+    02.jpg
+    notes.json
+  6ac9205b0000000014001c57/
+    01.jpg
+    notes.json
 ```
 
 链接支持四种写法：
@@ -41,7 +57,7 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --json
 | 缺协议头 | `www.xiaohongshu.com/explore/<24位id>` |
 
 > Windows 控制台乱码是 PowerShell 按 GBK 解码 UTF-8 导致的，数据本身没问题。
-> 加 `--save` 读文件，或先执行 `chcp 65001`。
+> 加 `--out` / `--save` 读文件，或先执行 `chcp 65001`。
 
 ---
 
@@ -56,15 +72,13 @@ python -m xhs_cli parse "<链接>"
 | 位置/参数 | 必填 | 默认 | 说明 |
 |---|---|---|---|
 | `link` | ✅ | — | 小红书短链或长链 |
+| `--out DIR` | | 无 | 落成目录 `<DIR>/<note_id>/{图片, notes.json}` |
 | `--json` | | 关 | 输出机器可读 JSON |
-| `--save FILE` | | 无 | 把 JSON 写进文件 |
+| `--save FILE` | | 无 | 把 JSON 写进单个文件 |
 
-退出码：`0` 成功 · `2` 链接不支持 · `3` 抓取失败。
+三个落盘参数可以**任意组合**，互不冲突。
 
-> ⚠️ 已知问题：`--json` 与 `--save` **同时用时不落盘**（`--save` 的判断
-> 被写在了 `else` 分支里）。要存文件就**别加 `--json`**。
->
-> ⚠️ `parse` **不下载图片**，也不产出目录 —— 它只给出图片 URL。
+退出码：`0` 成功 · `2` 链接不支持 · `3` 抓取失败 · `4` 目录写入失败。
 
 ---
 
@@ -144,6 +158,29 @@ HTTP 直连
 
 ## 输出
 
+### A. `--out` 目录（推荐）
+
+```powershell
+python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --out data
+```
+
+```
+data/<note_id>/
+  01.jpg      图片，序号与 notes.json 的 images 数组下标对齐
+  02.jpg
+  notes.json  完整数据（笔记 + 图片 + 评论）
+```
+
+- **图片按内容判扩展名**（`.jpg` / `.png` / `.gif` / `.webp`）——
+  小红书 CDN 的 URL 是 `...!h5_1080jpg` 这种伪后缀，没有点号，
+  看 URL 拿不到扩展名。
+- 文件名序号 = `images` 数组下标，**不重新编号**。
+  所以第 2 张图挂了时，剩下的是 `01.jpg` / `03.jpg`，
+  反查回去就知道缺的是哪一张。
+- 单张图下载失败**不会让整篇失败**，会记在 `notes.json` 的 `image_errors` 里。
+
+### B. JSON（`--save` / `--json` / `notes.json` 同一结构）
+
 ```powershell
 python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 ```
@@ -196,7 +233,11 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
   "declared": 523,                  // 页面声明的评论总数
   "got": 20,                        // 实际拿到多少条
   "complete": false,                // got >= declared
-  "elapsed_ms": 426
+  "elapsed_ms": 426,
+
+  // 下面两个键仅 --out 时有（即 notes.json）
+  "image_files": ["01.jpg"],        // 本地存下来的文件名
+  "image_errors": []                // 失败的那些，空=全成功
 }
 ```
 
@@ -212,6 +253,8 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 | `_parent_id` | **只有**楼中楼才有 |
 | `comments` 顺序 | 一级评论 + 其楼中楼紧跟其后，非严格时间序 |
 | `complete` | `got >= declared`；匿名态几乎总是 `false` |
+| `image_files` | 仅 `--out` 时有。本地图片文件名列表 |
+| `image_errors` | 仅 `--out` 时有。下载失败的图（`index`/`url`/`error`） |
 
 ---
 
@@ -258,10 +301,8 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 | # | 问题 | 影响 |
 |---|---|---|
 | 1 | `tags` 有重复项，且混入假标签「笔记」 | 该字段不能直接用 |
-| 2 | `--json --save FILE` 不落盘 | 存文件时别加 `--json` |
-| 3 | `parse` 不下载图片、不产出目录 | 只给 URL |
 
-**问题 1 的成因**：`ssr.parse_note` 用全局正则 `"name":"…"` 取标签，两个后果 ——
+**成因**：`ssr.parse_note` 用全局正则 `"name":"…"` 取标签，两个后果 ——
 
 - 页面里有 `"tabs":[{"id":"note","name":"笔记"}]`，「笔记」被当成标签；
 - `tagList` 在 SSR 内联与水合数据里各存一份，于是每项重复两遍。
@@ -309,7 +350,7 @@ def clean_tags(tags):
 ## 开发
 
 ```powershell
-# 测试（30 个用例）
+# 测试（39 个用例）
 D:\LOreal-ai\.venv\Scripts\python.exe -m pytest xhs-cli/tests -q
 ```
 

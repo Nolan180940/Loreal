@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import time
 from pathlib import Path
@@ -39,6 +40,68 @@ def _force_utf8() -> None:
             stream.reconfigure(encoding="utf-8", errors="replace")
         except Exception:  # noqa: BLE001
             pass
+
+
+#: 图片魔数 → 扩展名。
+#:
+#: **不能看 URL 后缀**：小红书 CDN 的 URL 长这样
+#: ``.../1040g3kAAA!h5_1080jpg``、``.../1040g3kAAA!style_d4c824bab532bfe9``
+#: —— 是 ``!`` 分隔的伪后缀，没有点号，``splitext`` 拿不到东西。
+_MAGIC: tuple[tuple[bytes, str], ...] = (
+    (b"\xff\xd8\xff", ".jpg"),
+    (b"\x89PNG\r\n\x1a\n", ".png"),
+    (b"GIF87a", ".gif"),
+    (b"GIF89a", ".gif"),
+)
+
+
+def _img_ext(data: bytes) -> str:
+    """按内容判断图片格式，认不出就当 JPEG（绝大多数是 JPEG）。"""
+    for magic, ext in _MAGIC:
+        if data.startswith(magic):
+            return ext
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return ".webp"
+    return ".jpg"
+
+
+def write_post_dir(result: dict, out_root: Path, payload: dict) -> dict:
+    """落成 ``<out_root>/<note_id>/``：图片 + ``notes.json``。
+
+    ``notes.json`` 是 ``--save`` 那份 JSON 的**超集** —— 只是多两个键
+    ``image_files`` / ``image_errors``，其余字段完全一致，
+    不会出现两套字段名。
+
+    单张图下载失败**不让整篇失败**：JSON 比图片重要。
+    """
+    from .core.fetch import FetchError, fetch_image
+
+    nid = str(result.get("note_id") or "")
+    if not nid:
+        raise ValueError("结果里没有 note_id，无法落盘")
+    root = Path(out_root) / nid
+    root.mkdir(parents=True, exist_ok=True)
+
+    urls = [str(u) for u in (result.get("images") or [])]
+    files: list[str] = []
+    errors: list[dict] = []
+    for i, url in enumerate(urls, 1):
+        try:
+            data = fetch_image(url)
+        except FetchError as exc:
+            errors.append({"index": i, "url": url, "error": str(exc)})
+            continue
+        name = f"{i:02d}{_img_ext(data)}"
+        (root / name).write_bytes(data)
+        files.append(name)
+
+    payload["image_files"] = files
+    payload["image_errors"] = errors
+    (root / "notes.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8")
+    return {"dir": str(root), "images": len(files), "urls": len(urls),
+            "errors": errors}
 
 
 def cmd_parse(args) -> int:
@@ -71,6 +134,28 @@ def cmd_parse(args) -> int:
         "elapsed_ms": result["elapsed_ms"],
     }
 
+    # --out：落成目录 <DIR>/<note_id>/{图片, notes.json}
+    if args.out:
+        try:
+            info = write_post_dir(result, Path(args.out), payload)
+        except OSError as exc:
+            print(f"[X] 写入失败: {exc}", file=sys.stderr)
+            return 4
+        print(f"[out] {info['dir']} | 图片 {info['images']}/{info['urls']} "
+              f"| notes.json", file=sys.stderr)
+        for e in info["errors"]:
+            print(f"[!] 图 {e['index']} 下载失败: {e['error']}", file=sys.stderr)
+
+    # --save：单个 JSON 文件。
+    # 必须在 json / 人读两个分支**之外** —— 曾经写在 else 里，
+    # 导致 ``--json --save x.json`` 静默不落盘。
+    if args.save:
+        sp = Path(args.save)
+        sp.parent.mkdir(parents=True, exist_ok=True)
+        sp.write_text(json.dumps(payload, ensure_ascii=False, indent=2,
+                                 default=str), encoding="utf-8")
+        print(f"[saved] {sp}", file=sys.stderr)
+
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2, default=str))
     else:
@@ -91,12 +176,6 @@ def cmd_parse(args) -> int:
             print(f"  {tag:<9}{c['nickname'][:14]:<15}"
                   f"{c['content'][:34]:<36}{c['ip_location'] or '-':<6}"
                   f"赞{c['like_count']}")
-        if args.save:
-            out = Path(args.save)
-            out.parent.mkdir(parents=True, exist_ok=True)
-            out.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
-                           encoding="utf-8")
-            print(f"[saved] {out}", file=sys.stderr)
     return 0
 from .storage.layout import NoteLayout
 
@@ -222,7 +301,9 @@ def main(argv: list[str] | None = None) -> int:
     pp = ps.add_parser("parse", help="HTTP 直连解析一个链接（不启动浏览器）")
     pp.add_argument("link", help="小红书短链或长链")
     pp.add_argument("--json", action="store_true", help="输出机器可读 JSON")
-    pp.add_argument("--save", metavar="FILE", help="同时落盘 JSON")
+    pp.add_argument("--save", metavar="FILE", help="把 JSON 写进单个文件")
+    pp.add_argument("--out", metavar="DIR",
+                    help="落成目录 <DIR>/<note_id>/{图片, notes.json}")
 
     args = ap.parse_args(argv)
 

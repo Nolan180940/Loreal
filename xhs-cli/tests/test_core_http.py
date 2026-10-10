@@ -262,3 +262,115 @@ def test_parse_note_images_deduped() -> None:
         f'"url":"{_IMG_B_H5}","url":"{_IMG_B_STYLE}"'
     )
     assert len(parse(html)["note"]["images"]) == 2
+
+
+# ------------------------------------------------------- --out 目录落盘
+#: 各格式的最小合法头部（用于验证按内容判扩展名）。
+_PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+_GIF = b"GIF89a" + b"\x00" * 16
+_WEBP = b"RIFF\x00\x00\x00\x00WEBP" + b"\x00" * 16
+_JPG = b"\xff\xd8\xff\xe0" + b"\x00" * 16
+#: 认不出的字节流 —— 必须退回 .jpg，不能抛异常。
+_UNKNOWN = b"\x00\x01\x02\x03" * 8
+
+
+@pytest.mark.parametrize(("data", "expect"), [
+    (_JPG, ".jpg"),
+    (_PNG, ".png"),
+    (_GIF, ".gif"),
+    (_WEBP, ".webp"),
+    (_UNKNOWN, ".jpg"),
+])
+def test_img_ext_sniffs_by_content(data: bytes, expect: str) -> None:
+    """回归：小红书 CDN 的 URL 是 ``!h5_1080jpg`` 这种伪后缀。
+
+    没有点号，``splitext`` 拿不到扩展名，所以**必须按内容判**。
+    认不出的退回 ``.jpg``（绝大多数是 JPEG），不能崩。
+    """
+    from xhs_cli.cli import _img_ext
+
+    assert _img_ext(data) == expect
+
+
+def test_img_ext_ignores_lying_url_suffix() -> None:
+    """URL 说 jpg、内容其实是 png 时，以内容为准。"""
+    from xhs_cli.cli import _img_ext
+
+    assert _img_ext(_PNG) == ".png"
+    assert "1040g3kAAA!h5_1080jpg".endswith("jpg")   # URL 确实在说谎
+
+
+def test_write_post_dir_creates_images_and_notes(tmp_path: Path) -> None:
+    """``--out`` 的产物契约：``<DIR>/<note_id>/{01.jpg, notes.json}``。"""
+    from unittest import mock
+
+    from xhs_cli import cli
+
+    result = {
+        "note_id": "6ac3c7f4000000001b02fc03",
+        "note": {"title": "t", "desc": "d"},
+        "images": ["http://cdn/a!h5_1080jpg", "http://cdn/b!h5_1080jpg"],
+        "comments": [{"id": "c1", "content": "hi"}],
+        "declared": 10, "got": 1, "complete": False, "elapsed_ms": 5,
+    }
+    # 与 cmd_parse 构造 payload 的方式一致
+    payload = {k: result[k] for k in ("note", "images", "comments",
+                                     "declared", "got", "complete")}
+
+    with mock.patch("xhs_cli.core.fetch.fetch_image",
+                    side_effect=[_JPG, _PNG]) as m:
+        info = cli.write_post_dir(result, tmp_path, payload)
+
+    assert m.call_count == 2
+    d = tmp_path / "6ac3c7f4000000001b02fc03"
+    # 序号与 images 数组下标对齐，扩展名按内容判
+    assert (d / "01.jpg").read_bytes() == _JPG
+    assert (d / "02.png").read_bytes() == _PNG
+    assert info["images"] == 2 and info["urls"] == 2
+
+    saved = json.loads((d / "notes.json").read_text(encoding="utf-8"))
+    assert saved["image_files"] == ["01.jpg", "02.png"]
+    # notes.json 是 --save 那份 JSON 的超集：原有键一个不少
+    for k in ("note", "images", "comments", "declared", "got", "complete"):
+        assert k in saved
+    assert saved["images"] == result["images"]   # 仍是 URL 列表，没被换掉
+
+
+def test_write_post_dir_survives_image_failure(tmp_path: Path) -> None:
+    """单张图挂了不能让整篇失败 —— JSON 比图片重要。"""
+    from unittest import mock
+
+    from xhs_cli import cli
+    from xhs_cli.core.fetch import FetchError
+
+    result = {
+        "note_id": "6ac9205b0000000014001c57",
+        "note": {"title": "t"}, "images": ["http://cdn/a", "http://cdn/b"],
+        "comments": [], "declared": 0, "got": 0, "complete": True,
+        "elapsed_ms": 1,
+    }
+    with mock.patch("xhs_cli.core.fetch.fetch_image",
+                    side_effect=[FetchError("boom", kind="image_network"),
+                                 _JPG]):
+        info = cli.write_post_dir(result, tmp_path, {})
+
+    d = tmp_path / "6ac9205b0000000014001c57"
+    # 文件名按 **URL 数组下标** 命名，不重新编号 ——
+    # 所以第 1 个失败时保留下来的就是 02.jpg，
+    # 反查回去就能知道它是 images[1]。
+    assert (d / "02.jpg").exists()
+    assert not (d / "01.jpg").exists()
+    assert info["images"] == 1 and info["urls"] == 2
+    assert info["errors"][0]["index"] == 1
+
+    saved = json.loads((d / "notes.json").read_text(encoding="utf-8"))
+    assert saved["image_errors"][0]["url"] == "http://cdn/a"
+    assert saved["image_files"] == ["02.jpg"]
+
+
+def test_write_post_dir_requires_note_id(tmp_path: Path) -> None:
+    """没有 note_id 就没法建目录，必须显式报错而不是写进一个怪名字。"""
+    from xhs_cli import cli
+
+    with pytest.raises(ValueError):
+        cli.write_post_dir({"images": []}, tmp_path, {})
