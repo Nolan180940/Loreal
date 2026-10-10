@@ -27,6 +27,77 @@ from .extractors import comments_first, images as images_mod, note as note_mod
 from .page import FetchError, _anon_browser, download_images, fetch_share_page, warmup
 from .share import (ShortLinkError, UnsupportedLink, can_fetch,
                     expand_short_link, is_short_link, normalize)
+
+
+def _force_utf8() -> None:
+    """Windows 控制台默认 GBK，遇到 emoji 直接 UnicodeEncodeError。
+
+    小红书昵称/内容高频出现 emoji，所以必须重配。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def cmd_parse(args) -> int:
+    """``xhs-cli parse <链接>``：HTTP 直连解析，输出 JSON。
+
+    不启动浏览器、不需要 Playwright。这是网站后端的同一条链路。
+    """
+    _force_utf8()
+    import json
+    from .core import FetchError, parse_link
+    from .core.link import UnsupportedLink
+
+    try:
+        result = parse_link(args.link)
+    except UnsupportedLink as exc:
+        print(f"[X] {exc}", file=sys.stderr)
+        return 2
+    except FetchError as exc:
+        print(f"[X] 抓取失败({exc.kind}): {exc}", file=sys.stderr)
+        return 3
+
+    payload = {
+        "note": result["note"],
+        "images": result["images"],
+        "comments": result["comments"],
+        "declared": result["declared"],
+        "got": result["got"],
+        "complete": result["complete"],
+        "note_id": result["note_id"],
+        "elapsed_ms": result["elapsed_ms"],
+    }
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2, default=str))
+    else:
+        n = result["note"]
+        print(f"note_id  : {result['note_id']}")
+        print(f"作者     : {n['author']}  IP {n['ip_location'] or '(未提供)'}")
+        print(f"赞/藏/评/享: {n['liked']} {n['collected']} "
+              f"{n['comment_count']} {n['share']}")
+        print(f"标题     : {n['title']}")
+        print(f"正文     : {n['desc'][:80]}")
+        print(f"图片     : {len(result['images'])} 张")
+        print(f"评论     : {result['got']} 条"
+              f"（页面声明 {result['declared']}，"
+              f"{'完整' if result['complete'] else '首屏数据'}）")
+        for c in result["comments"]:
+            tag = ("[作者]" if c["is_author"] else "") + \
+                  ("(回复)" if c["_is_reply"] else "")
+            print(f"  {tag:<9}{c['nickname'][:14]:<15}"
+                  f"{c['content'][:34]:<36}{c['ip_location'] or '-':<6}"
+                  f"赞{c['like_count']}")
+        if args.save:
+            out = Path(args.save)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
+                           encoding="utf-8")
+            print(f"[saved] {out}", file=sys.stderr)
+    return 0
 from .storage.layout import NoteLayout
 
 DEFAULT_OUT = Path(__file__).resolve().parents[2] / "xhs_data"
@@ -131,7 +202,8 @@ def main(argv: list[str] | None = None) -> int:
         prog="xhs",
         description="匿名免登录采集小红书笔记（文案/图片/首批评论）",
     )
-    ap.add_argument("url", nargs="?", help="单个分享链接")
+    # 注意：不能用位置参数 nargs="?" —— 它会抢走子命令名 'parse'。
+    ap.add_argument("--url", dest="url", help="单个分享链接")
     ap.add_argument("--input", help="链接清单文件（每行一个）")
     ap.add_argument("--out", default=str(DEFAULT_OUT), help="输出根目录")
     ap.add_argument("--skip-images", action="store_true", help="不下载图片")
@@ -146,7 +218,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cookies", default=None, metavar="FILE",
                     help="注入 cookie JSON（非匿名模式，token 失效时补救用）")
     ap.add_argument("--version", action="version", version=f"xhs-cli {__version__}")
+    ps = ap.add_subparsers(dest="cmd")
+    pp = ps.add_parser("parse", help="HTTP 直连解析一个链接（不启动浏览器）")
+    pp.add_argument("link", help="小红书短链或长链")
+    pp.add_argument("--json", action="store_true", help="输出机器可读 JSON")
+    pp.add_argument("--save", metavar="FILE", help="同时落盘 JSON")
+
     args = ap.parse_args(argv)
+
+    if args.cmd == "parse":
+        return cmd_parse(args)
 
     out_root = Path(args.out)
 
@@ -155,7 +236,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     urls: list[str] = []
-    if args.url:
+    if getattr(args, "url", None):
         urls.append(args.url)
     if args.input:
         p = Path(args.input)
