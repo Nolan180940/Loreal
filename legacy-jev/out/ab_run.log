@@ -1,0 +1,16 @@
+﻿D:\LOreal-ai\.venv\Scripts\python.exe : Traceback (most recent call last):
+所在位置 行:1 字符: 1
++ D:\LOreal-ai\.venv\Scripts\python.exe tools\ab_has_risk.py 2>&1 | Out ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last 
+   )::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "D:\LOreal-ai\jev\tools\ab_has_risk.py", line 183, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\LOreal-ai\jev\tools\ab_has_risk.py", line 178, in main
+    print("\n".join(L))
+    ~~~~~^^^^^^^^^^^^^^
+UnicodeEncodeError: 'gbk' codec can't encode character '\u2705' in position 11
+36: illegal multibyte sequence

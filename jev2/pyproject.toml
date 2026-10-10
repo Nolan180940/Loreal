@@ -1,0 +1,19 @@
+[project]
+name = "jev2"
+version = "0.1.0"
+description = "种草真实性判别系统 —— 信号层 + 语义层 + 可配置融合"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+jev2 = "jev2.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+jev2 = ["py.typed"]

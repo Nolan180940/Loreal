@@ -57,3 +57,9 @@ jev/*.egg-info/
 # ---- 已废弃草稿（功能已被 jev/src/jev_guard/providers/jev.py 取代）----
 regressionjev_client.py
 _msg.txt
+
+# ---- jev2 ----
+jev2/out/
+jev2/**/__pycache__/
+jev2/.pytest_cache/
+jev2/*.egg-info/

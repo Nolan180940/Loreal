@@ -1,0 +1,76 @@
+# jev2 配置
+#
+# **所有未敲定的量都在这里** —— 改它们不需要动代码。
+# 没有这个文件也能跑（全部有内置默认值）。
+#
+# 凭据不在这里：key 从 $JEV2_API_KEY 或 opencode auth.json 读。
+
+schema_version = 1
+
+[paths]
+# 相对路径会按 CWD → 仓库根的顺序解析（见 config.resolve_path）
+data_root = "data"
+out_dir = "jev2/out"
+
+[signals]
+# 空 = 全部启用。想只跑一部分就列名字。
+active = []
+# 样本量下限：低于此值的信号返回 missing（带原因），不当 0 用
+min_samples = 3
+
+[semantic]
+enabled = true
+model = "jev-1.13"
+endpoint = "https://opencode.ai/zen/v1/systemone"
+
+# 问哪些维度。加维度：在这里写名字 + 在 questions.py 注册 spec
+# （+ 想让它计分就在 fuse.weights 给权重）
+dims = ["is_ad", "has_risk", "exaggeration", "is_cta"]
+
+# state 拼装：喂什么文本给模型
+include_title = true
+include_desc = true
+include_tags = true
+top_comments = 5            # 送几条评论（0 = 不送）
+text_max_chars = 2000
+
+# 节流（实测：超了返回 429）
+qps = 2.5
+min_interval = 0.4
+timeout = 60
+max_retries = 3
+retry_backoff = 1.0
+
+[fuse]
+# ── 未敲定的决策量都在这一节 ──
+
+# 用哪套规则（rules.py 里的具名规则集：default / strict / semantic_only）
+rule_set = "default"
+
+# 三档阈值。**改二值只需让 low == high**。
+high = 0.70
+low = 0.30
+
+# 各维度权重。
+# ⚠️ 初始值继承 legacy-jev（已验证二值一致率 95.8%），
+#    不是拍脑袋定的 —— 没有 ground truth 之前不要随手改。
+weights = { has_risk = 0.35, exaggeration = 0.30, is_ad = 0.25, is_cta = 0.10 }
+
+# 一票否决：命中直接判 HIGH。
+# legacy 实测：is_ad>=0.85 把高风险召回从 40% 提到 100%。
+# 只有 is_ad 能 veto —— is_cta 也能短路会误判成分党硬核测评。
+veto = { is_ad = 0.85 }
+
+# L2 统计信号聚合方式：mean | max | median
+l2_aggregate = "mean"
+# 哪些信号参与聚合（空 = 全部非缺失的）
+l2_signals = []
+
+# ── 想启用 L2 统计信号进权重时，在 weights 里加一行 ──
+#
+#   weights = { has_risk = 0.35, exaggeration = 0.30, is_ad = 0.25,
+#               is_cta = 0.10, l2_mean = 0.15 }
+#
+# 引擎会自动把 l2_stats 规则从 flag 提升为 contribute（不用改代码）。
+# **建议等有人工判读的 ground truth 之后再启用** ——
+# 40 篇样本上给统计信号权重就是过拟合（legacy-jev 的教训）。
