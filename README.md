@@ -1,159 +1,558 @@
-# Loreal · 小红书笔记内容采集
+# L'Oréal Beauty Techathon · 小红书种草内容判别
 
-输入一个小红书链接，一条命令导出**正文 / 标签 / 图片 / 全量评论（含楼中楼）**。
+给一个小红书分享链接，输出**「这篇内容是不是在引导读者购买」**的判定，
+以及完整判定依据。
+
+```powershell
+python -m jev2 intake "https://xhslink.cn/o/3O20COBNbS1"
+```
 
 ```
-python tools\spider_xhs\xhs_cli.py "https://www.xiaohongshu.com/discovery/item/xxxx"
+[1/3] 采集
+      xhs-cli parse https://xhslink.cn/o/3O20COBNbS1 --out D:\LOreal-ai\data --json
+      69d8c8a6000000002301d991 · 上海微调升级美貌，这就是原生高智脸的魅力~ · 图 5/5 · 评论 13/100
+[2/3] 判定 · jev-1.13
+      [1/1] 69d8c8a6 1.000 高风险 veto:ad_gate
+[3/3] 报告
+      69d8c8a60000 1.000 高风险 | veto:ad_gate | 主因 is_ad=0.97 is_cta=0.71
+
+      [saved] D:\LOreal-ai\jev2\out\69d8c8a6000000002301d991\scores.json
+      [saved] D:\LOreal-ai\jev2\out\69d8c8a6000000002301d991\report.md
 ```
+
+**不需要 cookie、不需要登录、不需要浏览器。** 单篇约 1 秒 / $0.00006。
 
 ---
 
-## 1. 环境准备（首次使用，干净克隆后跑一次）
+## 项目背景
 
-```powershell
-python tools\setup_env.py
-```
+### 业务问题
 
-它会自动完成：
+赛题来自 L'Oréal Beauty Techathon。要解决的是内容平台的一个核心问题：
+**一篇看起来很真诚的笔记，到底是用户分享，还是在做投放？**
 
-1. 检查 Node.js（缺失会报错并给下载链接；签名算法依赖它）
-2. 创建 `tools\.venv`
-3. 安装依赖
-4. **自检**：真实 import 一次签名模块，确认可跑
-5. 检查 cookie 是否已配置
+「种草」是小红书的核心内容形态，也是品牌投放的主要载体。
+判断一篇笔记是自然分享还是商业引导，决定了品牌方该不该把它当口碑参考、
+平台该不该给它打标、消费者该不该信它。
 
-> Windows 上若提示权限不足，用管理员身份运行 PowerShell。
+### 判定口径
 
-## 2. 配置 Cookie
+口径来自 `小红书帖子CTA单人标注_200条（完成）.xlsx`（单人标注，200 条）的开篇定义：
 
-```powershell
-copy .env.example .env
-```
+> **目标：只判断帖子文字是否明确要求或建议读者采取购买相关行动。**
+> **不要判断是否广告、真假或夸大，也不要猜图片内容。**
 
-编辑 `.env`，填入 `XHS_COOKIE=...`。获取方式：
+| 标签 | 什么时候选 | 典型文字 | 不要误判成 |
+|---|---|---|---|
+| **是** | 让读者直接购买、下单、囤货、入手 | 「干皮姐妹直接买 A」 | 作者说自己买过 / 准备买 |
+| **是** | 引导询价、私信、点击购买入口或交易联系 | 「需要同款点左下角下单」 | 只说某处有售或价格多少 |
+| **是** | 明确告诉读者在商品、色号或类别中怎么选 | 「油皮选 A，干皮选 B」 | 只说「A 适合油皮」 |
+| **是** | 要求购买前完成具体动作 | 「买香水前先闻小样」 | 一般使用教程 |
+| **否** | 没有上述读者购买行动 | 价格、效果、产品名、使用心得 | 「推荐」「必买」这类标签本身 |
+| **否** | —— | 广告感强也可能填「否」 | |
+| **不确定** | 仅当「冲、安排、选它」无法确定主语是作者还是读者，或购买对象无法定位 | | 不要因为帖子长、语气夸张或像广告就填不确定 |
 
-1. 浏览器**登录**小红书 → 打开 `https://www.xiaohongshu.com/explore`
-2. `F12` → **Application** 标签 → Storage → Cookies → `https://www.xiaohongshu.com`
-3. 找到 **`web_session`**，双击 Value 复制
-4. 把 `web_session=xxx` 追加到 cookie 串末尾
+这个口径有三条硬约束，直接决定了整套系统的设计：
 
-也可用系统环境变量 `XHS_COOKIE` 覆盖（优先级更高）。
+1. **「像广告」≠「是 CTA」** —— 广告感强也可能填「否」
+2. **主语必须指向读者** —— 「作者说自己买过」是「否」
+3. **语气不能当证据** —— 夸张、篇幅长都不是理由
 
-> `.env` 已在 `.gitignore` 中，不会进仓库。
+### 这三条约束带来的技术选择
 
-## 3. 日常使用
-
-```powershell
-cd tools\spider_xhs
-..\.venv\Scripts\python.exe xhs_cli.py "小红书链接"
-```
-
-**输出示例：**
-
-```
-[1/4] cookie OK（590 字符，web_session=有）
-[2/4] 短链解析: note_id = 6ab7946f...
-[3/4] 抓取笔记（正文 / 标签 / 图片）...
-    标题: 如果出道能复刻当年1d的盛况吗
-    正文: 19 字 | 标签: 7 字
-    互动: 赞1362 藏141 评117 转367
-    图片: 3 张
-[4/4] 抓取评论（全部，含楼中楼）...
-    楼中楼补全 31 条（9 次请求）
-    一级 68 + 楼中楼 49 = 117 条（笔记显示 117，已对齐）
-[OK] 全部产物在 D:\LOreal-ai\data\xhs
-```
-
-### 参数
-
-| 参数 | 作用 |
+| 约束 | 后果 |
 |---|---|
-| `-o, --out` | 输出目录（默认 `data/xhs`） |
-| `--no-images` | 跳过图片下载（快很多） |
-| `--no-comments` | 跳过评论抓取 |
-| `--dry-run` | 只解析链接，不发请求 |
+| 只看文字，不看图片 | 判别层不需要视觉模型，成本降到 $0.00006/篇 |
+| 主语指向读者（不是「像不像广告」） | 语义层问的是「有没有让读者做什么」，不是「像不像广告」 |
+| 语气不能当证据 | 感叹号密度、模板排版这类信号**上限被压到 0.7~0.85**，不让它们单独定性 |
+| 人工标注只有 200 条、单人 | 没有 ground truth 前不随手改权重；阈值只在离线扫描里动，并明确标注为候选值 |
 
-## 4. 产物结构
+### 一个关键的自我约束
 
+标注是**单人**做的，所以它本身也不是绝对真值。
+系统评估时用的基准是「逐篇人工判读 40 篇」，并且明确记录：
+在同一批 40 篇上调出来的阈值属于**「在考卷上改答案」**，
+换一批数据验证前只能算候选值。这条写在 `jev2/README.md` 里。
+
+---
+
+## Quick Start
+
+### 0. 环境（首次，干净克隆后跑一次）
+
+```powershell
+cd d:\LOreal-ai
+
+# 建 venv
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# 装两个包（都只用标准库，--no-deps 即可）
+python -m pip install -e xhs-cli --no-deps
+python -m pip install -e jev2    --no-deps
+
+# 配凭据（二选一）
+$env:JEV2_API_KEY = "sk-..."      # 方式一：环境变量
+# 方式二：登录过 opencode 就不用管，自动读 ~/.local/share/opencode/auth.json
 ```
-<输出目录>/
-├─ note/
-│   ├─ note.md          标题 + 正文 + 标签 + 互动数据（人可直接读）
-│   ├─ note.json        完整结构化数据
-│   └─ image_urls.json  图片 URL 列表
-├─ comments/
-│   ├─ comments.txt        全部评论，楼中楼缩进挂在对应一级下
-│   ├─ comments.json       结构化（楼中楼带 _is_reply / _parent_id）
-│   ├─ comments_top.json   仅一级评论
-│   ├─ comments_replies.json 仅楼中楼
-│   └─ card.json           抓取自检（是否与笔记页数字对齐）
-└─ images/  Download/   图片文件 + 作品数据库（SQLite）
+
+装完 `xhs` 和 `jev2` 两个命令就都在 PATH 上了（venv 激活状态下）。
+
+> ⚠️ **必须 `pip install -e`**，不能只 `cd` 进目录跑。
+> `jev2/` 目录本身能被 Python 当成**空的命名空间包** import 成功，
+> 于是 `python -m jev2` 会报一个和真实原因毫无关系的错。
+> 装上之后任意 cwd 都能跑。
+
+### 1. 环境自检
+
+```powershell
+python -m jev2 doctor
 ```
 
-`comments/card.json` 是**抓取自检报告**，字段：
+检查 key / 数据路径 / 模型连通 / 信号清单。模型不通会明确报出来
+（比如上游 451），不会等到跑批才炸。
 
-| 字段 | 含义 |
+### 2. 一条命令：链接 → 报告
+
+```powershell
+python -m jev2 intake "https://xhslink.cn/o/3O20COBNbS1"
+```
+
+| 参数 | 说明 |
 |---|---|
-| `expected` | 笔记页显示的评论数 |
-| `top_level` / `replies` | 实际抓到的一级 / 楼中楼数 |
-| `complete` | 是否完全对齐 |
-| `thread_gaps` | 仍未抓全的楼明细（不静默丢数据） |
+| `--no-images` | 不下载图片（判别不需要图，但人工复核需要） |
+| `--no-semantic` | 只用统计信号，不调模型、不需要 key（分数**不构成判定结果**） |
+| `--timeout N` | 采集超时秒数（默认 180） |
 
-## 5. 工作原理
+**退出码**：`0` 成功 · `2` 链接不支持或采集器没装（**重试没用**）·
+`3` 抓取失败（**可重试**）· `4` 落盘失败。脚本靠这个决定要不要重试。
+
+### 3. 分步跑（调试 / 批量用）
+
+```powershell
+# 采集（只落盘，不判别）
+python -m xhs_cli parse "<链接>" --out data
+
+# 只看统计信号 —— 零模型调用、不花钱
+python -m jev2 signals --note 6ab6a30e
+
+# 判别（单篇 / 全批）
+python -m jev2 judge --note 6ab6a30e
+python -m jev2 judge                    # 全批，默认跳过已判过的
+python -m jev2 judge --per-note         # 全批 + 每篇都落单篇目录
+
+# 出汇总报告（读已有结果，不调模型）
+python -m jev2 report
+python -m jev2 report --note 6ab6a30e   # 只出某篇，不调模型
+```
+
+调阈值时反复跑 `signals` 和 `report` 就行 —— 这两个都不花钱。
+
+### 4. 产物在哪
 
 ```
-链接
- ├─ XHS-Downloader ──→ 抓 HTML 页面 → 正文 / 标签 / 图片
- └─ Spider_XHS ──────→ 签名 API 调用 → 一级评论 + 楼中楼
+data/<note_id>/                      ← 采集层产物
+  01.jpg  02.jpg ...                 图片，序号对齐 notes.json 的 images 下标
+  notes.json                         笔记 + 图片 + 评论（完整数据）
+
+jev2/out/                            ← 判别层产物
+  scores.jsonl                       全库汇总（一行一篇）
+  REPORT.md                          汇总报告
+  <note_id>/
+    scores.json                      单篇完整结果（就是 jsonl 里那一行）
+    report.md                        单篇可读报告（全部中间值）
 ```
 
-两个上游项目都放在 `tools/` 下（已内置，非 submodule）：
+`report.md` 是「这一篇凭什么这么判」的完整答案：
 
-| 目录 | 来源 | 作用 |
+```markdown
+## 结论         总分 / 档位 / 一票否决 / run_id / config_hash / 耗时
+## 笔记         标题 / 作者 / 点赞 / 评论声明 vs 评论实得 / 图片数
+## 语义维度     按风险值降序，带置信度与题型
+## 统计信号     非零的按降序 + 缺失的连同原因单列
+## 判定过程     规则逐条求值：动作 / 值 / 权重 / 贡献 / 说明
+```
+
+当前仓库状态：**43 篇采集 · 540 条评论 · 100 张图 · 43 篇已判定**
+（低风险 24 · 中风险 10 · 高风险 9）。
+
+> Windows 控制台按 GBK 解码 UTF-8，中文会乱码。数据本身没问题 ——
+> 报告都落成了 UTF-8 文件，读文件最省事。或先 `chcp 65001`。
+
+---
+
+## 项目架构
+
+两个子系统，一条单向链路：
+
+```
+分享链接
+   │
+   ├──[子进程]── xhs-cli ──────────→ data/<note_id>/{图片, notes.json}
+   │                                  采集层：只负责「把数据拿到」
+   │
+   └──────────── jev2 ──────────────→ jev2/out/<note_id>/{scores.json, report.md}
+                                      判别层：只负责「怎么判」
+```
+
+### 采集层：xhs-cli
+
+```
+xhs-cli/src/xhs_cli/
+  core/                 ★ 采集链路（只用标准库）
+    link.py             链接归一化：短链 / 长链 / 缺协议 → LinkRef
+    fetch.py            urllib 直连 + 手机 UA（三条铁律都在这个文件开头）
+    ssr.py              HTML → 结构化字段
+    ssr_json.py         括号配对提取嵌套数组（评论 / tagList）
+    service.py          parse_link()：重试 + 换 token
+  cli.py                命令行入口（只有 parse 一个子命令）
+```
+
+```mermaid
+graph LR
+    A["链接"] --> B["link.normalize"]
+    B --> C["fetch.expand<br/>取新鲜 xsec_token"]
+    C --> D["fetch.fetch_html<br/>手机 UA 取详情页"]
+    D --> E["ssr.parse<br/>正则 + 括号配对"]
+    E --> F["note / images / comments"]
+```
+
+### 判别层：jev2
+
+```
+jev2/src/jev2/
+  collect.py            进料：链接 → data/（子进程调 xhs-cli）
+  loader.py             notes.json → NoteRecord（唯一认识数据结构的地方）
+  signals/              ★ 一信号一文件，注册表自动发现（17 个）
+    base.py             @signal 装饰器 + SignalSet
+    _lib.py             共享数学工具（纯函数）
+  semantic/
+    questions.py        问题注册表（措辞已 A/B 校准）
+    provider.py         jev-1.13 HTTP 客户端
+    runner.py           state 拼装 + 调用 + 归一化
+  fuse/
+    formulas.py         ★ 公式库：指标函数 + 逻辑门（纯函数）
+    rules.py            ★ 规则集：声明式决策逻辑
+    engine.py           求值引擎（写一次就不动）
+  pipeline/
+    runner.py           编排：load → signals → semantic → fuse → store
+    store.py            scores.jsonl 读写（幂等）
+  report.py             报告渲染（汇总 / 单篇）
+  cli.py                命令行入口
+```
+
+```mermaid
+graph LR
+    L["分享链接"] --> CO["collect.py<br/>（子进程调 xhs-cli）"]
+    CO --> A["data/&lt;id&gt;/<br/>notes.json + 图片"]
+    A --> B[loader]
+    B --> C["signals/<br/>17 个信号<br/>（1 个默认禁用）"]
+    B --> D["semantic/<br/>jev-1.13"]
+    C --> E[fuse/engine]
+    D --> E
+    F["fuse/formulas.py"] -.-> E
+    G["fuse/rules.py"] --> E
+    E --> H["out/scores.jsonl"]
+    E --> I[report]
+    E -.per_note.-> J["out/&lt;note_id&gt;/<br/>scores.json + report.md"]
+```
+
+数据流**单向**：`loader → signals/semantic → fuse → store`。
+每层输入输出都是 `dataclass`，没有隐式共享状态。
+
+### 仓库目录
+
+```
+d:\LOreal-ai\
+├─ xhs-cli/           采集（匿名 HTTP，parse 路径只用标准库）
+├─ jev2/              判别（信号 + 语义 + 融合）
+│   ├─ config.toml    ★ 阈值 / 权重 / 规则集都在这里
+│   └─ out/           产物
+├─ data/              采集产物（43 篇，入库便于复现）
+├─ docs/              设计与实测记录
+└─ tools/  legacy-*  regression/     早期实现，不参与主链路
+```
+
+### 为什么切成两个子系统
+
+唯一的**进程边界**就在采集器那里：
+
+| | 采集 | 判别 |
 |---|---|---|
-| `tools/source/`、`tools/main.py` | [JoeanAmier/XHS-Downloader](https://github.com/JoeanAmier/XHS-Downloader) | 笔记正文、标签、图片 |
-| `tools/spider_xhs/xhs_utils/`、`apis/` | [cv-cat/Spider_XHS](https://github.com/cv-cat/Spider_XHS) | 小红书 web 签名、评论接口 |
+| 会怎么挂 | 短链过期、反爬、验证码、网络抖动 | 模型 451、key 失效、数据格式变了 |
+| 挂了怎么办 | 换链接 / 重试 | 看异常类型（跳过 / 中止 / 退避） |
+| 换实现成本 | 低（换个采集器即可） | 高（规则都在里面） |
 
-**我们自己的代码只有 4 个文件：**
+混在一个进程里就得写一套混合的异常处理；分开之后「采集崩了」直接变成
+一个退出码，处置方式立刻明确。代价是多一次进程启动（约 0.3s），
+和一份必须维护的 JSON 契约：
 
-| 文件 | 作用 |
-|---|---|
-| `tools/spider_xhs/xhs_cli.py` | 一键命令入口 |
-| `tools/spider_xhs/thread_fetcher.py` | 楼中楼完整抓取（翻页 + 去重合并 + 自检） |
-| `tools/spider_xhs/fetch_comments.py` | 单独抓评论 |
-| `tools/setup_env.py`、`tools/read_my_cookie.py` | 环境与 cookie |
-
-### 关键实现要点
-
-| 问题 | 处理 |
-|---|---|
-| 短链 ID ≠ 真实 note_id | 抓完笔记后用返回的 `作品ID` 覆盖 |
-| `xsec_token` 不在图片 URL 里 | 从 `作品链接` 字段正则提取 |
-| 评论接口返回 406 | 必须先 `bootstrap()` 拿 user_id（签名头 `xy-direction` 依赖它） |
-| 只抓到一级评论 | 笔记页评论数 = 一级 + 楼中楼；楼中楼需显式翻 `sub/page` 并按 id 去重合并 |
-| 中文输出乱码 | 全部落盘 UTF-8，控制台只打摘要 |
-
-## 6. 已知限制
-
-| 限制 | 说明 |
-|---|---|
-| **拿不到原图** | 下载的是平台转码版（URL 含 `imageView2` 参数），传感器噪声与 EXIF 已被剥离。像素级篡改取证不适用 |
-| **楼中楼每页仅 5 条** | 已实现翻页（上限 30 页/楼），实测 117 条笔记可完全对齐 |
-| **`xsec_token` 有时效** | 作品链接带日期，**请用刚从小红书分享出来的链接**，旧链接会被拒 |
-| **风控** | 已内置 0.8–1.2s 请求延时。官方文档警告高频请求会触发风控甚至封号，请勿批量高频抓取 |
-| **楼中楼回复内容** | 只保证抓到 `sub_comment_count` 标注的条数；被删除/折叠的评论无法获取 |
-
-## 7. 合规
-
-仅用于公开可见内容的采集与分析。请遵守平台服务条款与当地法规，不得用于规模化抓取、用户数据画像或商业竞争用途。
-
-## 8. 历史代码归档
-
-本仓库早期做过一套**图像取证流水线**（`forensic/`：像素级篡改检测、证据卡生成、合成数据集），已从 `main` 移除，完整保留在归档分支：
-
-```powershell
-git checkout archive/full              # 切到归档分支查看
-git checkout archive/full -- forensic/  # 只取回 forensic 目录
+```
+stdout  纯 JSON（可 json.loads）—— 顶层必须是 object，且含 note_id
+stderr  进度信息（人读的，可忽略）
+退出码  0 成功 · 2 链接不支持 · 3 抓取失败 · 4 落盘失败
 ```
 
-标签 `archive/pre-reset` 指向重置前的最后一个提交（`0aeb834`）。
+jev2 会逐项校验这份契约，包括最难发现的一种失败：
+**「采集器报成功，但文件没落盘」** —— 不在这里拦住，就会带着一个
+不存在的路径一路走到 loader 才报错，那时已经看不出是采集的问题了。
+
+### 数据契约
+
+`data/<note_id>/notes.json` 是两层之间**唯一**的接口。
+判别层不认识小红书，只认识这个结构（`loader.py` 是唯一解析它的地方）。
+
+```jsonc
+{
+  "note_id": "6ac3c7f4000000001b02fc03",
+  "note": {
+    "title": "…", "desc": "…", "author": "…",
+    "liked": "7546",            // ⚠️ 计数都是字符串
+    "comment_count": "523",     // 页面声明的总数（一级 + 楼中楼）
+    "time_ms": "1791215604000", // 毫秒时间戳，字符串
+    "tags": ["…", "…"],         // ⚠️ 有重复项，需清洗
+    "images": ["http://…!h5_1080jpg"]
+  },
+  "comments": [
+    { "nickname": "…", "content": "…", "ip_location": "山东",
+      "like_count": "0", "time": 1791470300000,
+      "is_author": false, "_is_reply": false }
+  ],
+  "declared": 523, "got": 20, "complete": false,
+  "image_files": ["01.jpg"], "image_errors": []
+}
+```
+
+`loader.py` 会丢掉**没有正文的评论**（无内容可判）——
+原始 543 行 → 解析后 540 行，`jev2 doctor` 报的是后者。
+
+---
+
+## 原理
+
+### 采集：为什么不用浏览器、不用 cookie
+
+三条铁律（`core/fetch.py` 开头，实测得出，不要改）：
+
+1. **必须手机 UA。** 桌面 UA 会 302 到登录页，而 **HTTP 状态码仍是 200** ——
+   只判状态码会静默拿到一个废页面。所以展开后必须校验最终 URL。
+2. **必须 `urllib`。** 实测它的 TLS 指纹能过。
+   `requests` / `httpx` / `curl_cffi` **未验证，不要替换**。
+3. **不复用连接。** 不开 `Session`、不加 keep-alive，每次新建 `Request`。
+
+**短链优先**：短链每次展开都由平台**新签发** `xsec_token`；
+长链里写死的 token 几小时就失效。所以优先保存短链。
+
+**SSR 是 JS 字面量，不是 JSON** —— 详情页把数据塞在 HTML 的 JS 对象里，
+含 `undefined`、尾随逗号，不能直接 `json.loads`：
+
+```
+HTML
+ ├─ prepare()      只反转义 \u002F 与 \/（不碰 \" —— 会切断字段边界）
+ ├─ 正则取标量      title / desc / likedCount / shareCount ...
+ ├─ 括号配对取数组  "commentData":{"comments":[ → 深度扫描跳过字符串与转义 → json.loads
+ └─ 摊平           一级评论在前，其楼中楼紧跟其后
+```
+
+**评论为什么必须括号配对**：SSR 里一级评论的 `user` 与 `content` 之间
+隔着整个 `subComments` 数组（实测 1000~1500 字），任何「最近距离配对」都会错配；
+而且 `user` 相对 `content` 的位置在一级评论与楼中楼里**正好相反**。
+按括号配对取整段 JSON 是唯一不依赖字段顺序的做法。
+
+**降级链**（最长 4 次尝试）：
+
+```
+HTTP 直连
+  ↓ token 类失败（detail_http_* / expand_no_token / expand_login）
+重新展开短链换新 token
+  ↓ 拿到 HTML 但关键字段全空（EmptyDataError）
+重新展开短链换新 token
+  ↓ 限流 / 网络类失败
+指数退避 1s → 2s → 4s
+  ↓ 仍失败
+抛 FetchError（带 kind，见 xhs-cli/README.md）
+```
+
+### 判别：三层，各管一件事
+
+```
+notes.json
+   ↓ loader
+NoteRecord
+   ├─→ signals/     17 个统计信号    → SignalResult（value = 风险值 0..1）
+   └─→ semantic/    jev-1.13 四维度  → DimScore
+                        ↓
+                    fuse/engine（规则集 + 公式库）
+                        ↓
+                    Verdict → out/
+```
+
+**信号层**测「行为痕迹」——不读内容，只算数字：
+
+| 信号 | 测什么 | 方向 | AUC |
+|---|---|---|---:|
+| `comment_len_mean` | 评论平均长度 | 越短越可疑 | **0.809** |
+| `comment_len_sd` | 评论长度标准差 | 越小越可疑 | 0.785 |
+| `comment_len_iqr` | 长度四分位距 | 越小越可疑 | 0.761 |
+| `low_effort_ratio` | 低信息量评论占比 | 越高越可疑 | 0.742 |
+| `comment_time_span` | 评论时间跨度 | 越集中越可疑 | 0.737 |
+| `tag_count` | 话题标签个数（SEO 堆砌） | 越多越可疑 | 0.734 |
+| `text_exclaim_density` | 感叹号密度 | 越高越可疑 | 0.714 |
+| `like_comment_ratio` | 赞评比 | 越高越可疑 | 0.714 |
+| `cta_lexicon` | 引导词词表（私信/优惠券…） | 密度越高越可疑 | 0.697 |
+| `structure_markers` | 模板排版（✅1️⃣💡） | 标记越多越可疑 | 0.680 |
+| `sub_reply_ratio` | 楼中楼占比 | 越低越可疑 | 0.603 |
+| `ip_top1_ratio` | IP top1 占比 | 越高越可疑 | 0.511 |
+| `author_reply_ratio` | 作者自评占比 | 越高越可疑 | 0.495 |
+| `ip_entropy` | IP 分布熵 | 越低越可疑 | 0.460 |
+| `text_length` | 正文长度 | 两个极端可疑 | 0.424 |
+| `comment_like_rate` | 评论点赞非零率 | 越低越可疑 | 全缺失 |
+| `nickname_dup_rate` | 昵称重复率 | **已禁用** | 0.259 反向 |
+
+> `value` 是**风险值**（0..1，越大越可疑），原始测量值在 `detail` 里。
+> 比如 `comment_len_sd` 的 `value=0.0` 意思是「这个维度没发现可疑」，
+> 不是「计算失败」—— 原始 SD 在 `detail.sd`。
+
+**语义层**读内容，判四个维度：`is_ad` / `has_risk` / `exaggeration` / `is_cta`。
+其中 `is_cta` 直接对应上面的业务口径。
+
+**融合层**是声明式规则 + 纯函数公式库：
+
+```toml
+weights = { has_risk = 0.35, exaggeration = 0.30, is_ad = 0.25, is_cta = 0.10 }
+veto    = { is_ad = 0.85 }
+high    = 0.60
+low     = 0.30
+```
+
+```python
+Rule(name="ad_gate",
+     action="veto",                      # veto | contribute | flag
+     formula=indicator_ge,
+     args={"t": 0.85},                   # 参数是数据，不是代码
+     inputs=("is_ad",))
+```
+
+**一票否决只有 `is_ad ≥ 0.85`**。依据：加权平均会把纯广告稀释
+（官方活动贴 `is_ad=0.96` 被拉到加权 0.642 → 误判中风险），
+加这道门后高风险召回 40% → 100%。但**不能让 `is_cta` 也短路** ——
+曾经放开过，结果 `is_cta=0.88` 误判了一篇成分党硬核测评。
+**强引导 ≠ 高风险。**
+
+### 四条核心原则
+
+**1. 引擎写一次，内容全部数据化。** 每个「还没敲定」的量都有一个专门的接缝：
+
+| 想改什么 | 动哪里 |
+|---|---|
+| 加一个统计信号 | `signals/` 丢个新文件 + `@signal` 装饰器 —— 自动发现 |
+| 加一个语义维度 | `questions.py` 注册 spec + config 的 `dims` / `weights` |
+| 改融合逻辑 | `fuse/rules.py` 换规则集，或 config 改 `weights` / `veto` |
+| 改档位阈值 | config 的 `high` / `low`（想二值化就让 `low == high`） |
+
+**2. 缺失是一等公民。** 样本不足时信号返回 `missing` + 原因，**绝不返回 0**。
+「0 风险」和「没法算」是两回事 —— 混同会让报告把「没数据」显示成「很干净」。
+融合时缺失的规则被跳过并记录，分母也相应扣掉。
+
+**3. 权重全部来自语义维度。** 17 个统计信号**一个都不直接计分**，
+只通过 `l2_stats` 规则以 `flag` 动作被记录，供调阈值时参考。
+后果：**没跑语义层 = 没有分数**。所以 `--no-semantic` 跑出来的
+`0.000 低风险` 不是「内容干净」，而是「什么都没判」——
+终端和报告都会打警告，而且那些结果不算「已判过」，重跑会重判。
+
+**4. 上游挂了就别装作跑完了。** 语义层失败分两种，处置完全不同：
+
+| 情况 | 处置 |
+|---|---|
+| 单篇偶发失败 | 该篇继续（`semantic_ok=false`），并声明「分数只含统计信号」 |
+| **连续 3 篇失败** | **中止整批**，退出码 4 |
+
+上游 451（`Endpoint is unavailable`）会让**每一篇**都失败。不熔断就会一路
+跑完，把整批写成「总分全 0 · 低风险」—— 而那个结果和「40 篇确实都干净」
+**长得一模一样**。
+
+### 实测结果
+
+**离线评估**（基准：逐篇人工判读 40 篇）：
+
+| 指标 | 阈值 0.70 | 阈值 0.60 + 3 个新信号 |
+|---|---:|---:|
+| 二值一致率 | 97.5% | **100%** |
+| 三档一致率 | 75.0% | **77.5%** |
+| kappa | 0.560 | **0.606** |
+| 高风险 F1 | 0.923 | **1.000** |
+
+**成本与速度**：40 篇全跑约 35 秒 / **$0.0019**（单篇约 $0.00006）。
+调阈值不需要重跑模型 —— `scores.jsonl` 里存了全部中间值。
+
+### 已知限制
+
+**数据源限制（匿名态）**：
+
+| 限制 | 影响 |
+|---|---|
+| 一级评论**只有 5 条** | 楼层数被锁在 5；总条数可以远超（楼中楼能带出几十上百条） |
+| 评论 `like_count` **恒为 0** | `comment_like_rate` 恒 missing —— 主动返回 missing 带原因，不拿它当刷评证据 |
+| 帖子 IP 属地**拿不到** | 试过 13 个候选键名，note 区 0 命中；评论 IP 可得 |
+| 评论翻页返回 461 | 第 6 条一级评论起拿不到 |
+| `tags` 有重复项 + 混入假标签「笔记」 | 读之前必须清洗 |
+
+**方法限制**：
+
+- 阈值 0.60 是在同一批 40 篇上调的，属于**「在考卷上改答案」**，
+  换一批数据验证前只能算候选值
+- `nickname_dup_rate` 实测 **AUC 0.259（方向是反的）**，已禁用 ——
+  它实际测的是「默认昵称流行度」（官方活动帖评论者全是唯一昵称，
+  个人真实帖反而一堆 `momo`），不是「刷评」
+- 权重继承自早期系统（已验证二值一致率 95.8%），
+  **没有 ground truth 之前不要随手改** —— n=40 时新权重就是过拟合
+- `comment_time_span` 只测首屏那 5 条一级评论的内部跨度，
+  不是整个评论区的活跃曲线，所以风险上限压到 0.6
+
+**阈值为什么必须按实测分位数定**：初版 14 个信号里有 6 个阈值完全落在
+分布之外（信号恒 0 这种**静默失效**）。所以每个信号文件里都写了取值依据，
+改之前先读 docstring。
+
+---
+
+## 开发
+
+```powershell
+# 265 个用例（jev2 226 + xhs-cli 39）
+python -m pytest jev2/tests xhs-cli/tests -q
+```
+
+测试重点锁三类东西：
+
+1. **风险方向** —— 每个信号「越大越可疑」还是「越小越可疑」。
+   写反过两次（`band_risk` 逻辑倒置、`ip_entropy` 条件写错），
+   两次都是「信号恒 0」这种静默失效，不测根本发现不了
+2. **缺失语义** —— 样本不足必须 missing + 原因，不能返回 0
+3. **可扩展性** —— 换规则集 / 加权重键 / 自动发现信号都要有测试兜住
+
+改动前先读两处注释：`xhs-cli/core/fetch.py` 的三条铁律、
+`jev2/semantic/provider.py` 的坑列表（Cloudflare UA、451 可重试等）。
+
+---
+
+## 文档索引
+
+| 文件 | 内容 |
+|---|---|
+| `jev2/README.md` | 判别系统详解：信号清单、公式库、规则集、评估 |
+| `xhs-cli/README.md` | 采集详解：三条铁律、SSR 解析、字段可用性、失败分类 |
+| `docs/JEV2_PLAN.md` | 框架设计总纲（扩展点与接缝） |
+| `docs/JEV2_EVALUATION.md` | 首轮评估：逐篇人工判读 40 篇做基准 |
+| `docs/XHS_SITE_IMPL.md` | HTTP 采集路线的实现说明 |
+| `docs/DATA_COMPLETENESS.md` | 采集数据完整性审计 |
+| `docs/SSR_COMMENT_LIMIT.md` | 一级评论被锁在 5 条的实测依据 |
+| `docs/NOTE_IP_AVAILABILITY.md` | 帖子 IP 不可得的实测依据（13 个键名） |
+
+---
+
+## 合规
+
+仅用于公开可见内容的采集与分析。请遵守平台服务条款与当地法规，
+不得用于规模化抓取、用户数据画像或商业竞争用途。
+
+采集已内置请求间隔，请勿高频批量抓取。

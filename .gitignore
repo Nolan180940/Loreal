@@ -54,6 +54,12 @@ jev/**/__pycache__/
 jev/.pytest_cache/
 jev/*.egg-info/
 
+# ---- 可编辑安装（pip install -e）产生的元数据 ----
+xhs-cli/*.egg-info/
+jev2/*.egg-info/
+jev2/src/*.egg-info/
+xhs-cli/src/*.egg-info/
+
 # ---- 已废弃草稿（功能已被 jev/src/jev_guard/providers/jev.py 取代）----
 regressionjev_client.py
 _msg.txt
