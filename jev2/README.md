@@ -1,4 +1,4 @@
-# jev2
+﻿# jev2
 
 种草真实性判别系统：**统计信号 + jev-1.13 语义判定 + 可配置融合**。
 
@@ -44,6 +44,9 @@ python -m jev2 judge
 
 # 4. 出报告（读已有结果，不调模型）
 python -m jev2 report
+
+# 5. 只要某一篇 —— 落 out/<note_id>/{scores.json, report.md}
+python -m jev2 judge --note 6ab6a30e
 ```
 
 40 篇全跑约 **35 秒 / $0.0019**。
@@ -72,10 +75,11 @@ python -m jev2 report
 
 | 参数 | 说明 |
 |---|---|
-| `--note PREFIX` | 只跑某篇 |
+| `--note PREFIX` | 只跑某篇（默认开单篇产物） |
 | `--limit N` | 最多跑几篇 |
 | `--force` | 重跑已有结果的篇（默认跳过，省钱） |
 | `--no-semantic` | 只用统计信号，**不调模型、不需要 key** |
+| `--per-note` | 额外为**每篇**落 `out/<note_id>/{scores.json, report.md}` |
 | `--report` | 跑完出简报 |
 | `--report-path FILE` | 把 Markdown 报告写到该文件 |
 
@@ -83,6 +87,7 @@ python -m jev2 report
 
 | 参数 | 说明 |
 |---|---|
+| `--note PREFIX` | 只出某篇的**单篇**报告，落 `out/<note_id>/`（不调模型） |
 | `--top N` | 风险清单条数（默认 15） |
 | `--out FILE` | 输出路径（默认 `out/REPORT.md`） |
 
@@ -128,7 +133,7 @@ jev2/src/jev2/
   pipeline/
     runner.py           编排：load → signals → semantic → fuse → store
     store.py            scores.jsonl 读写（幂等）
-  report.py             报告渲染
+  report.py             报告渲染（汇总 render_markdown / 单篇 render_note_detail）
   cli.py                命令行入口
 ```
 
@@ -143,6 +148,7 @@ graph LR
     G["fuse/rules.py"] --> E
     E --> H["out/scores.jsonl"]
     E --> I[report]
+    E -.per_note.-> J["out/&lt;note_id&gt;/<br/>scores.json + report.md"]
 ```
 
 ---
@@ -260,6 +266,41 @@ L1 语义维度  →  jev-1.13 判（花钱，但能读懂话）
 
 `semantic_ok: false` 表示该篇模型调用失败，**分数只含统计信号**（会偏低）——
 这不是「判定为干净」，报告里会单独警告。
+
+### `out/<note_id>/`（单篇产物）
+
+单篇模式（`judge --note` / `report --note`）**同时**落这两个文件；
+`judge --per-note` 则给每篇都开一个目录：
+
+```
+out/6a7ebdfe00000000080122b8/
+├── scores.json    # 就是 scores.jsonl 里那一行（json.dumps indent=2）
+└── report.md      # 单篇可读报告
+```
+
+区别于汇总产物的关键：**这两个文件里只有这一篇**。
+
+`report.md` 比汇总报告详细得多 —— 单篇的全部中间值：
+
+```
+# jev2 单篇判定：`6a7ebdfe00000000080122b8`
+
+## 结论         总分 / 档位 / 一票否决 / run_id / config_hash / 耗时
+## 笔记         标题 / 作者 / 点赞 / 评论声明 vs 评论实得 / 图片数
+## 语义维度     按风险值降序，带置信度与题型
+## 统计信号     非零的按降序 + **缺失的连同原因单独列出**
+## 判定过程     规则逐条求值：动作 / 值 / 权重 / 贡献 / 说明
+```
+
+终端同时打一行简报：
+
+```
+6a7ebdfe0000 0.765 高风险 | 主因 exaggeration=0.98 is_ad=0.63
+```
+
+> 为什么单篇 `scores.json` 要和 jsonl 那一行**逐字一致**：
+> 两份产物能互相印证，不会出现「按 jsonl 统计的分布」和
+> 「按单篇目录复核的结果」对不上这种问题。
 
 ### `out/REPORT.md`
 
@@ -415,7 +456,7 @@ top 维度保底），**全部不如单纯调阈值**，而且都会引入误杀
 ## 开发
 
 ```powershell
-# 169 个用例
+# 193 个用例
 D:\LOreal-ai\.venv\Scripts\python.exe -m pytest jev2/tests -q
 ```
 

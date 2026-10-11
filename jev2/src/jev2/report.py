@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -111,6 +112,25 @@ def summarize(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------- 渲染
+
+def render_note_console(row: dict[str, Any]) -> str:
+    """单篇的终端简报（一行结论 + 主要依据）。"""
+    nid = str(row.get("note_id") or "")
+    lv = row.get("level")
+    lv_label = (Level(lv).label if lv in ("low", "medium", "high")
+                else str(lv))
+    parts = [f"{nid[:12]} {_num(row.get('total')):.3f} {lv_label}"]
+    if row.get("vetoed_by"):
+        parts.append(f"veto:{row['vetoed_by']}")
+    dims = row.get("dimensions") or {}
+    top = sorted(((k, _num(v.get("value"))) for k, v in dims.items()
+                  if isinstance(v, dict)), key=lambda x: -x[1])[:2]
+    if top:
+        parts.append("主因 " + " ".join(f"{k}={v:.2f}" for k, v in top))
+    if row.get("semantic_ok") is False:
+        parts.append("⚠️ 语义层失败")
+    return " | ".join(parts)
+
 
 def render_markdown(rows: list[dict[str, Any]], *,
                     top: int = 15,
@@ -218,6 +238,175 @@ def render_markdown(rows: list[dict[str, Any]], *,
     return "\n".join(L) + "\n"
 
 
+def render_note_detail(row: dict[str, Any], *,
+                       title: str = "") -> str:
+    """**单篇**详细报告 —— 一篇一页，含全部中间值。
+
+    与 :func:`render_markdown` 的分工：
+
+    - ``render_markdown``     多篇汇总（分布 + Top 清单 + 抽样 trace）
+    - ``render_note_detail``  单篇展开（全维度 + 全信号 + 完整 trace）
+
+    后者是「这一篇凭什么这么判」的完整答案，用于单篇复核与人工抽查。
+    """
+    nid = str(row.get("note_id") or "")
+    note = row.get("note") or {}
+    lv = row.get("level")
+    lv_label = (Level(lv).label if lv in ("low", "medium", "high")
+                else str(lv))
+    total = _num(row.get("total"))
+
+    L: list[str] = []
+    w = L.append
+
+    w(f"# jev2 单篇判定：`{nid}`")
+    w("")
+    if title:
+        w(f"> {title}")
+        w("")
+
+    # ---- 结论 ----
+    w("## 结论")
+    w("")
+    w("| 项 | 值 |")
+    w("|---|---|")
+    w(f"| 总分 | **{total:.4f}** |")
+    w(f"| 档位 | **{lv_label}** |")
+    if row.get("vetoed_by"):
+        w(f"| 一票否决 | **{row['vetoed_by']}** |")
+    w(f"| run_id | `{row.get('run_id', '')}` |")
+    w(f"| config_hash | `{row.get('config_hash', '')}` |")
+    w(f"| 模型 | `{row.get('model') or '(未启用语义层)'}` |")
+    w(f"| 规则集 | `{row.get('rule_set', '')}` |")
+    w(f"| 判定时间 | {row.get('scored_at', '')} |")
+    w(f"| 耗时 | {row.get('elapsed_ms', '-')} ms |")
+    if row.get("semantic_ok") is False:
+        w("")
+        w(f"> ⚠️ **语义层失败**：{row.get('semantic_error', '')[:120]}")
+        w(">")
+        w("> 本篇分数**只含统计信号**，偏低是正常的，不代表「内容干净」。")
+    for n in (row.get("notes") or []):
+        w("")
+        w(f"> {n}")
+    w("")
+
+    # ---- 笔记元信息 ----
+    if note:
+        w("## 笔记")
+        w("")
+        w("| 项 | 值 |")
+        w("|---|---|")
+        w(f"| 标题 | {note.get('title') or '（空）'} |")
+        w(f"| 作者 | {note.get('author') or '（空）'} |")
+        w(f"| 点赞 | {note.get('liked')} |")
+        w(f"| 评论声明 | {note.get('comment_count')} |")
+        w(f"| 评论实得 | {note.get('comments_got')} |")
+        w(f"| 图片 | {note.get('images')} 张 |")
+        w("")
+
+    # ---- 语义维度 ----
+    dims = row.get("dimensions") or {}
+    if dims:
+        w("## 语义维度（jev-1.13）")
+        w("")
+        w("| 维度 | 风险值 | 置信度 | 题型 |")
+        w("|---|---:|---:|---|")
+        for name, d in sorted(dims.items(),
+                              key=lambda x: -_num((x[1] or {}).get("value"))):
+            if not isinstance(d, dict):
+                continue
+            conf = d.get("confidence")
+            w(f"| `{name}` | {_num(d.get('value')):.3f} | "
+              f"{'—' if conf is None else f'{_num(conf):.2f}'} | "
+              f"{d.get('qtype', '')} |")
+        w("")
+
+    # ---- 统计信号（含缺失）----
+    sigs = row.get("signals") or {}
+    if sigs:
+        w("## 统计信号")
+        w("")
+        present = {k: v for k, v in sigs.items()
+                   if isinstance(v, dict) and not v.get("missing")}
+        missing = {k: v for k, v in sigs.items()
+                   if isinstance(v, dict) and v.get("missing")}
+        if present:
+            w("| 信号 | 风险值 | n | 详情 |")
+            w("|---|---:|---:|---|")
+            for name, s in sorted(present.items(),
+                                  key=lambda x: -_num(x[1].get("value"))):
+                detail = " · ".join(f"{k}={v}" for k, v in
+                                    list((s.get("detail") or {}).items())[:4])
+                w(f"| `{name}` | {_num(s.get('value')):.3f} | {s.get('n', 0)} | "
+                  f"{str(detail)[:70]} |")
+            w("")
+        if missing:
+            w(f"**缺失 {len(missing)} 个**（样本不足或数据源限制，"
+              f"未参与打分）：")
+            w("")
+            for name, s in sorted(missing.items()):
+                w(f"- `{name}` —— {s.get('missing_reason') or '未给原因'}")
+            w("")
+
+    # ---- 判定过程 ----
+    trace = row.get("trace") or []
+    if trace:
+        w("## 判定过程（规则逐条求值）")
+        w("")
+        w("| 规则 | 动作 | 值 | 权重 | 贡献 | 说明 |")
+        w("|---|---|---:|---:|---:|---|")
+        for t in trace:
+            v = "—" if t.get("value") is None else f"{_num(t['value']):.3f}"
+            w(f"| `{t.get('rule')}` | {t.get('action')} | {v} | "
+              f"{_num(t.get('weight')):.2f} | {_num(t.get('contribution')):.4f} | "
+              f"{str(t.get('reason') or '')[:52]} |")
+        w("")
+        w("> 命中 veto 的规则会直接把总分拉满，后续规则不再计入；")
+        w("> `flag` 动作只记录不计分（如 L2 统计信号）。")
+        w("")
+
+    return "\n".join(L) + "\n"
+
+
+def write_note_bundle(out_dir: Path, row: dict[str, Any], *,
+                      title: str = "") -> dict[str, str]:
+    """把**单篇**结果落成 ``<out_dir>/<note_id>/{scores.json, report.md}``。
+
+    Returns
+    -------
+    dict
+        ``{"dir", "scores", "report"}``（绝对路径字符串）
+
+    与汇总产物的分工
+    ----------------
+    - ``out/scores.jsonl``  全篇汇总（一行一篇，供聚合与对比）
+    - ``out/<nid>/scores.json`` 单篇完整详情（供复核这一篇）
+    - ``out/<nid>/report.md``   单篇可读报告
+
+    ``scores.json`` 就是 ``scores.jsonl`` 里的那一行（结构完全一致），
+    所以两种读法可以互相印证，不会出现两套字段。
+    """
+    out_dir = Path(out_dir)
+    nid = str(row.get("note_id") or "")
+    if not nid:
+        raise ValueError("row 里没有 note_id，无法建单篇目录")
+
+    d = out_dir / nid
+    d.mkdir(parents=True, exist_ok=True)
+
+    scores_path = d / "scores.json"
+    scores_path.write_text(
+        json.dumps(row, ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8")
+
+    report_path = d / "report.md"
+    report_path.write_text(render_note_detail(row, title=title),
+                           encoding="utf-8")
+
+    return {"dir": str(d), "scores": str(scores_path),
+            "report": str(report_path)}
+
+
 def write_report(rows: list[dict[str, Any]], path: Path, *,
                  top: int = 15,
                  title: str = "jev2 判定报告") -> Path:
@@ -247,4 +436,6 @@ def render_console(rows: list[dict[str, Any]]) -> str:
     return " | ".join(parts)
 
 
-__all__ = ["summarize", "render_markdown", "write_report", "render_console"]
+__all__ = ["summarize", "render_markdown", "render_note_detail",
+           "write_report", "write_note_bundle", "render_console",
+           "render_note_console"]

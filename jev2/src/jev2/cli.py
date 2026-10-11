@@ -28,7 +28,8 @@ from .config import config_hash, load_config, mask, resolve_api_key
 from .core.errors import ConfigError, JevError
 from .loader import load_all, load_note
 from .pipeline.store import ResultStore
-from .report import render_console, render_markdown, summarize
+from .report import (render_console, render_markdown, render_note_console,
+                     summarize, write_note_bundle)
 from .signals import ALL_SIGNALS, SignalContext, SignalSet, signal_groups
 
 
@@ -188,23 +189,36 @@ def cmd_judge(args: argparse.Namespace) -> int:
 
     try:
         stats = pipe.run(notes=notes, limit=args.limit,
-                         skip_existing=not args.force)
+                         skip_existing=not args.force,
+                         per_note=(args.per_note or bool(args.note)))
     except JevError as exc:
         print(f"[X] {exc}", file=sys.stderr)
         return 3
 
     print()
+    if stats.get("aborted"):
+        print(f"[X] 整批中止：{stats['aborted']}")
     print(f"完成：{stats['ok']} 判 · {stats['skipped']} 跳过 · "
           f"{stats['failed']} 失败 · 耗时 {stats['elapsed_s']}s")
     if stats["semantic_failed"]:
         print(f"  ⚠️ 语义层失败 {stats['semantic_failed']} 篇"
-              "（这些只含统计信号，分数偏低）")
+              "（这些只含统计信号，分数偏低，**不等于内容干净**）")
     if stats["model_stats"]:
         ms = stats["model_stats"]
         print(f"  模型：{ms['calls']} 次调用 · "
               f"{ms['input_tokens']} in / {ms['output_tokens']} out · "
               f"${ms['cost_usd']}")
     print(f"  run_id={stats['run_id']}  config_hash={stats['config_hash']}")
+
+    # 单篇模式（或 --per-note）已由 Pipeline 落了 out/<note_id>/
+    dirs = stats.get("note_dirs") or []
+    if dirs:
+        print()
+        print(f"  单篇产物 {len(dirs)} 个目录：")
+        for p in dirs[:5]:
+            print(f"    {p}/  (scores.json + report.md)")
+        if len(dirs) > 5:
+            print(f"    … 其余 {len(dirs) - 5} 个见 {cfg.paths.out_dir}")
 
     if args.report:
         rows = ResultStore(cfg.paths.out_dir).load()
@@ -213,7 +227,8 @@ def cmd_judge(args: argparse.Namespace) -> int:
         if args.report_path:
             from .report import write_report
             print(f"[saved] {write_report(rows, Path(args.report_path))}")
-    return 0
+    # 中止 ≠ 成功 —— 退出码要让脚本能区分
+    return 4 if stats.get("aborted") else 0
 
 
 def cmd_report(args: argparse.Namespace) -> int:
@@ -226,6 +241,28 @@ def cmd_report(args: argparse.Namespace) -> int:
         return 2
     if bad:
         print(f"[!] 跳过 {len(bad)} 个坏行", file=sys.stderr)
+
+    # ---- 单篇模式：从已有结果里挑一篇，出单篇目录 ----
+    if args.note:
+        prefix = args.note
+        hit = [r for r in rows
+               if str(r.get("note_id") or "").startswith(prefix)]
+        if not hit:
+            print(f"[X] scores.jsonl 里没有 note_id 以 {prefix!r} 开头的记录",
+                  file=sys.stderr)
+            return 2
+        if len(hit) > 1:
+            print(f"[X] {prefix!r} 匹配到 {len(hit)} 篇，请给更长前缀",
+                  file=sys.stderr)
+            return 2
+        row = hit[0]
+        title = str((row.get("note") or {}).get("title") or "")
+        info = write_note_bundle(cfg.paths.out_dir, row, title=title)
+        print(render_note_console(row))
+        print()
+        print(f"[saved] {info['scores']}")
+        print(f"[saved] {info['report']}")
+        return 0
 
     info = summarize(rows)
     print(render_console(rows))
@@ -361,11 +398,15 @@ def build_parser() -> argparse.ArgumentParser:
                    help="重跑已有结果的篇（默认跳过）")
     p.add_argument("--no-semantic", action="store_true",
                    help="只用统计信号（不调模型、不需要 key）")
+    p.add_argument("--per-note", action="store_true",
+                   help="额外为每篇落 out/<note_id>/{scores.json, report.md}"
+                        "（--note 单篇模式默认开启）")
     p.add_argument("--report", action="store_true", help="跑完出简报")
     p.add_argument("--report-path", help="把 Markdown 报告写到该路径")
     p.set_defaults(func=cmd_judge)
 
     p = ps.add_parser("report", help="从已有结果出报告（不调模型）")
+    p.add_argument("--note", help="只出某篇的单篇报告（note_id 前缀）")
     p.add_argument("--top", type=int, default=15, help="风险清单条数")
     p.add_argument("--out", help="Markdown 输出路径")
     p.set_defaults(func=cmd_report)

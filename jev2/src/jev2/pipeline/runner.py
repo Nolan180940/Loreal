@@ -33,6 +33,7 @@ from ..core.errors import AuthError, DataError, ProviderError
 from ..core.types import NoteRecord, SignalResult, Verdict
 from ..fuse.engine import EngineConfig, FuseEngine
 from ..loader import load_all
+from ..report import write_note_bundle
 from ..semantic.provider import JevProvider
 from ..semantic.runner import SemanticRunner
 from ..signals import SignalContext, SignalSet
@@ -192,7 +193,9 @@ class Pipeline:
     def run(self, *, notes: Iterable[NoteRecord] | None = None,
             limit: int | None = None,
             skip_existing: bool = False,
-            flush_every: int = 1) -> dict[str, Any]:
+            flush_every: int = 1,
+            per_note: bool = False,
+            max_consec_semantic_fail: int = 3) -> dict[str, Any]:
         """跑批。
 
         Parameters
@@ -203,6 +206,19 @@ class Pipeline:
         flush_every
             每 N 篇落盘一次。默认 1（每篇都写）—— 40 篇规模下
             写盘成本远低于重跑模型的成本。
+        per_note
+            额外为每篇落 ``out/<note_id>/{scores.json, report.md}``。
+            单篇模式（``judge --note``）默认开启 —— 那时只判一篇，
+            输出一个孤立目录最直观。
+        max_consec_semantic_fail
+            连续多少篇语义层失败就**中止整批**（0 = 不熔断）。
+
+            为什么需要：上游 451（\"Endpoint is unavailable\"）会让
+            **每一篇**都失败。不熔断的话整批会被写成 "总分全 0、
+            semantic_ok=false" —— 看着像「40 篇全干净」，实际什么
+            都没判。只算统计信号的 0 分和「判下来确实干净」长得一模一样，
+            所以宁可不跑完。
+            — 单篇偶发失败不算数，必须是**连续**。
         """
         t0 = time.monotonic()
         if notes is None:
@@ -225,8 +241,11 @@ class Pipeline:
         self.store.meta = meta
 
         rows: list[dict[str, Any]] = []
+        note_dirs: list[str] = []
         ok = skipped = failed = 0
         sem_fail = 0
+        consec_fail = 0
+        aborted = ""
         total = len(notes)
 
         for i, note in enumerate(notes, 1):
@@ -246,8 +265,23 @@ class Pipeline:
 
             if not jr.semantic_ok:
                 sem_fail += 1
-            rows.append(jr.to_row(meta=meta, note=note))
+                consec_fail += 1
+            else:
+                consec_fail = 0
+
+            row = jr.to_row(meta=meta, note=note)
+            rows.append(row)
             ok += 1
+
+            if per_note:
+                try:
+                    info = write_note_bundle(
+                        self.cfg.paths.out_dir, row, title=note.title)
+                    note_dirs.append(info["dir"])
+                except (OSError, ValueError) as exc:
+                    # 单篇落盘失败不该让整批失败（汇总 jsonl 才是主产物）
+                    self.log(f"  [!] 单篇产物写入失败: {exc}")
+
             lv = jr.verdict.level.label
             v = f" veto:{jr.verdict.vetoed_by}" if jr.verdict.vetoed_by else ""
             self.log(f"[{i}/{total}] {note.note_id[:8]} "
@@ -256,6 +290,15 @@ class Pipeline:
             if flush_every > 0 and len(rows) >= flush_every:
                 self.store.upsert_many(rows)
                 rows = []
+
+            if (max_consec_semantic_fail
+                    and consec_fail >= max_consec_semantic_fail):
+                aborted = (f"连续 {consec_fail} 篇语义层调用失败（上游"
+                           f"451/限流），已中止整批")
+                self.log(f"[X] {aborted} —— 剩下 {total - i} 篇未跑")
+                self.log("    已跑的篇 semantic_ok=false，分数只含统计信号，"
+                         "偏低不代表内容干净")
+                break
 
         if rows:
             self.store.upsert_many(rows)
@@ -266,9 +309,11 @@ class Pipeline:
             "skipped": skipped,
             "failed": failed,
             "semantic_failed": sem_fail,
+            "aborted": aborted,
             "elapsed_s": round(time.monotonic() - t0, 1),
             "run_id": meta.run_id,
             "config_hash": meta.config_hash,
+            "note_dirs": note_dirs,
             "model_stats": self.stats,
             "store": self.store.summary(),
         }
