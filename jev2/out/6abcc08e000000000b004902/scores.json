@@ -1,0 +1,306 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:13:14",
+  "note_id": "6abcc08e000000000b004902",
+  "total": 0.072,
+  "level": "low",
+  "level_label": "低风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.23,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.03,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.0033,
+      "confidence": 0.99,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0.99,
+          "1": 0.01,
+          "2": 0,
+          "3": 0
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.03,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.0,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 0,
+        "ratio": 0.0
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.9219,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 5.25
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.9667,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 9.5
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.6905,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 3.55,
+        "mean": 9.5,
+        "min_len": 7,
+        "max_len": 15
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 6,
+      "missing": true,
+      "missing_reason": "6 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.6,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 887.0,
+        "first_ms": 1790768595000,
+        "last_ms": 1790821814000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 0.0,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.9697,
+        "distinct": 5
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.0,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.333,
+        "top1_ip": "河北",
+        "distinct": 5
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.1285,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 3.69,
+        "liked": 129,
+        "comment_count": 35
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.8148,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 4,
+        "ratio": 0.667
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 0,
+        "markers": []
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.6111,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 1,
+        "ratio": 0.167
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.0,
+      "n": 2,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 2,
+        "tags": [
+          "惊喜盒子",
+          "雅诗兰黛小棕瓶"
+        ],
+        "desc_len": 24
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.0,
+      "n": 42,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 0,
+        "density_per_100": 0.0
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.1333,
+      "n": 24,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 24,
+        "title_len": 17
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.03,
+      "weight": 0.35,
+      "contribution": 0.0105,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.0033,
+      "weight": 0.3,
+      "contribution": 0.001,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.23,
+      "weight": 0.25,
+      "contribution": 0.0575,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.03,
+      "weight": 0.1,
+      "contribution": 0.003,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.3245,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.324（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 728,
+  "note": {
+    "title": "好消息:掉盒子了，坏消息:是壁纸😅",
+    "author": "此momo非彼momo",
+    "liked": 129,
+    "comment_count": 35,
+    "comments_got": 6,
+    "images": 1
+  }
+}

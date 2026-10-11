@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-145225-bab771",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:52:26",
+  "note_id": "6a942f820000000003029674",
+  "total": 0.4605,
+  "level": "medium",
+  "level_label": "中风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.51,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.28,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.68,
+      "confidence": 0.84,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0,
+          "1": 0.06,
+          "2": 0.84,
+          "3": 0.1
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.31,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.3333,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 4,
+        "ratio": 0.333
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.7656,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 7.75
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.8056,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 11.9
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.0,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 13.29,
+        "mean": 11.9,
+        "min_len": 2,
+        "max_len": 53
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 12,
+      "missing": true,
+      "missing_reason": "12 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.0,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 54694.3,
+        "first_ms": 1788167083000,
+        "last_ms": 1791448741000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 0.3357,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.873,
+        "distinct": 7
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.0556,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.417,
+        "top1_ip": "浙江",
+        "distinct": 7
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.2762,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 9.54,
+        "liked": 1135,
+        "comment_count": 119
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.2593,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 5,
+        "ratio": 0.417
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 0,
+        "markers": []
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.0,
+      "n": 12,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 7,
+        "ratio": 0.583
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.4286,
+      "n": 8,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 8,
+        "tags": [
+          "佰草集仙草泥",
+          "涂抹面膜",
+          "熬夜",
+          "抗老",
+          "睡眠面膜",
+          "面膜"
+        ],
+        "desc_len": 604
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.2789,
+      "n": 619,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 12,
+        "density_per_100": 1.94
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 604,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 604,
+        "title_len": 14
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.28,
+      "weight": 0.35,
+      "contribution": 0.098,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.68,
+      "weight": 0.3,
+      "contribution": 0.204,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.51,
+      "weight": 0.25,
+      "contribution": 0.1275,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.31,
+      "weight": 0.1,
+      "contribution": 0.031,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.2359,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.236（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 747,
+  "note": {
+    "title": "免洗面膜真的敢天天糊脸上吗？",
+    "author": "挖宝小孟",
+    "liked": 1135,
+    "comment_count": 119,
+    "comments_got": 12,
+    "images": 3
+  }
+}

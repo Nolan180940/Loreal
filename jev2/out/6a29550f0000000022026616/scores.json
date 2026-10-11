@@ -1,0 +1,309 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:12:51",
+  "note_id": "6a29550f0000000022026616",
+  "total": 0.138,
+  "level": "low",
+  "level_label": "低风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.12,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.12,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.1867,
+      "confidence": 0.56,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0.44,
+          "1": 0.56,
+          "2": 0,
+          "3": 0
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.1,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.0,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 0,
+        "ratio": 0.0
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.5,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 12.0
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.6667,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 14.0
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.0,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 7.99,
+        "mean": 14.0,
+        "min_len": 2,
+        "max_len": 28
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 19,
+      "missing": true,
+      "missing_reason": "19 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.0,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 141193.3,
+        "first_ms": 1782042137000,
+        "last_ms": 1790513734000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 0.0,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.9748,
+        "distinct": 9
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.0,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.211,
+        "top1_ip": "上海",
+        "distinct": 9
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.3051,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 10.98,
+        "liked": 999,
+        "comment_count": 91
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.0,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 5,
+        "ratio": 0.263
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 0,
+        "markers": []
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.0,
+      "n": 19,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 14,
+        "ratio": 0.737
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.0,
+      "n": 5,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 5,
+        "tags": [
+          "干皮护肤碎碎念",
+          "好物推荐",
+          "年度爱用",
+          "薇诺娜",
+          "以上仅代表个人使用感受"
+        ],
+        "desc_len": 356
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.0,
+      "n": 371,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 0,
+        "density_per_100": 0.0
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 356,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 356,
+        "title_len": 14
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.12,
+      "weight": 0.35,
+      "contribution": 0.042,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.1867,
+      "weight": 0.3,
+      "contribution": 0.056,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.12,
+      "weight": 0.25,
+      "contribution": 0.03,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.1,
+      "weight": 0.1,
+      "contribution": 0.01,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.0981,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.098（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 736,
+  "note": {
+    "title": "没人比它争议大｜自用repo",
+    "author": "日常薯",
+    "liked": 999,
+    "comment_count": 91,
+    "comments_got": 19,
+    "images": 3
+  }
+}

@@ -59,7 +59,6 @@ regressionjev_client.py
 _msg.txt
 
 # ---- jev2 ----
-jev2/out/
 jev2/**/__pycache__/
 jev2/.pytest_cache/
 jev2/*.egg-info/

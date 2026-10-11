@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:12:43",
+  "note_id": "69bd5426000000001f006b23",
+  "total": 0.13,
+  "level": "low",
+  "level_label": "低风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.06,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.04,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.33,
+      "confidence": 0.51,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0.25,
+          "1": 0.53,
+          "2": 0.2,
+          "3": 0.02
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.02,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.0,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 3,
+        "ratio": 0.15
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.0,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 22.5
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.0,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 28.9
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.0,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 29.36,
+        "mean": 28.9,
+        "min_len": 6,
+        "max_len": 127
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 20,
+      "missing": true,
+      "missing_reason": "20 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.079,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 13480.7,
+        "first_ms": 1774161904000,
+        "last_ms": 1774970745000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 0.0,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.9284,
+        "distinct": 10
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.0,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.2,
+        "top1_ip": "江苏",
+        "distinct": 10
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.0385,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 1.0,
+        "liked": 278,
+        "comment_count": 278
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.0,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 3,
+        "ratio": 0.15
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 0,
+        "markers": []
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.0,
+      "n": 20,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 15,
+        "ratio": 0.75
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.0,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 1,
+        "tags": [
+          "修丽可"
+        ],
+        "desc_len": 60
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.0,
+      "n": 92,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 0,
+        "density_per_100": 0.0
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 60,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 60,
+        "title_len": 31
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.04,
+      "weight": 0.35,
+      "contribution": 0.014,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.33,
+      "weight": 0.3,
+      "contribution": 0.099,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.06,
+      "weight": 0.25,
+      "contribution": 0.015,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.02,
+      "weight": 0.1,
+      "contribution": 0.002,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.0078,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.008（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 768,
+  "note": {
+    "title": "修丽可的age面霜里面加了啥，涂起来一层白白的，跟素颜霜一样…",
+    "author": "🐯🐯",
+    "liked": 278,
+    "comment_count": 278,
+    "comments_got": 20,
+    "images": 1
+  }
+}

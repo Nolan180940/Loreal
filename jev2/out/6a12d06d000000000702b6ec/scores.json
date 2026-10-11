@@ -1,0 +1,303 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:12:49",
+  "note_id": "6a12d06d000000000702b6ec",
+  "total": 0.1235,
+  "level": "low",
+  "level_label": "低风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.08,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.03,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.0,
+      "confidence": 1.0,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 1,
+          "1": 0,
+          "2": 0,
+          "3": 0
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.93,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.0,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 2,
+        "ratio": 0.143
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.3281,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 14.75
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.5381,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 15.9
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.0,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 15.14,
+        "mean": 15.9,
+        "min_len": 2,
+        "max_len": 51
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 14,
+      "missing": true,
+      "missing_reason": "14 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.0,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 191429.2,
+        "first_ms": 1779619071000,
+        "last_ms": 1791104822000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 0.0,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.9417,
+        "distinct": 9
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.0,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.214,
+        "top1_ip": "上海",
+        "distinct": 9
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.0444,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 1.16,
+        "liked": 43,
+        "comment_count": 37
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.2857,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 6,
+        "ratio": 0.429
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 0,
+        "markers": []
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.0,
+      "n": 14,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 9,
+        "ratio": 0.643
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 0,
+        "tags": [],
+        "desc_len": 50
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.0,
+      "n": 60,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 0,
+        "density_per_100": 0.0
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 50,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 50,
+        "title_len": 9
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.03,
+      "weight": 0.35,
+      "contribution": 0.0105,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.0,
+      "weight": 0.3,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.08,
+      "weight": 0.25,
+      "contribution": 0.02,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.93,
+      "weight": 0.1,
+      "contribution": 0.093,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.0798,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.080（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 931,
+  "note": {
+    "title": "兰蔻小黑瓶精华价格",
+    "author": "Lydia",
+    "liked": 43,
+    "comment_count": 37,
+    "comments_got": 14,
+    "images": 2
+  }
+}

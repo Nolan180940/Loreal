@@ -1,0 +1,303 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:12:40",
+  "note_id": "6931e77a000000001e033f7b",
+  "total": 0.114,
+  "level": "low",
+  "level_label": "低风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.11,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.05,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.2067,
+      "confidence": 0.62,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0.38,
+          "1": 0.62,
+          "2": 0,
+          "3": 0
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.07,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.0,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 0,
+        "ratio": 0.0
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.9688,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 4.5
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.8381,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 11.4
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.0,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 7.37,
+        "mean": 11.4,
+        "min_len": 3,
+        "max_len": 28
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 7,
+      "missing": true,
+      "missing_reason": "7 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.0,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 138381.3,
+        "first_ms": 1764920552000,
+        "last_ms": 1773223429000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 0.0,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.963,
+        "distinct": 5
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.0,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.286,
+        "top1_ip": "江苏",
+        "distinct": 5
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.2126,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 6.75,
+        "liked": 54,
+        "comment_count": 8
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.2857,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 3,
+        "ratio": 0.429
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 0,
+        "markers": []
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.0,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 3,
+        "ratio": 0.429
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 0,
+        "tags": [],
+        "desc_len": 128
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.0,
+      "n": 147,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 0,
+        "density_per_100": 0.0
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 128,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 128,
+        "title_len": 18
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.05,
+      "weight": 0.35,
+      "contribution": 0.0175,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.2067,
+      "weight": 0.3,
+      "contribution": 0.062,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.11,
+      "weight": 0.25,
+      "contribution": 0.0275,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.07,
+      "weight": 0.1,
+      "contribution": 0.007,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.1537,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.154（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 790,
+  "note": {
+    "title": "珂润面霜今年入的很对很适合油皮冬季用",
+    "author": "瑶妹妹",
+    "liked": 54,
+    "comment_count": 8,
+    "comments_got": 7,
+    "images": 3
+  }
+}

@@ -1,0 +1,308 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:12:54",
+  "note_id": "6a57b437000000001702fd1e",
+  "total": 0.146,
+  "level": "low",
+  "level_label": "低风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.03,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.05,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.3467,
+      "confidence": 0.0,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0.36,
+          "1": 0.32,
+          "2": 0.24,
+          "3": 0.08
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.17,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 1,
+        "ratio": 0.1
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 24.5
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 31.1
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 32.92,
+        "mean": 31.1,
+        "min_len": 7,
+        "max_len": 120
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 10,
+      "missing": true,
+      "missing_reason": "10 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 106931.7,
+        "first_ms": 1784172661000,
+        "last_ms": 1790588563000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.9427,
+        "distinct": 7
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.3,
+        "top1_ip": "福建",
+        "distinct": 7
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.0196,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 0.5,
+        "liked": 13,
+        "comment_count": 26
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 3,
+        "ratio": 0.3
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 1,
+        "markers": [
+          "❌"
+        ]
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.0,
+      "n": 10,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 5,
+        "ratio": 0.5
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.0,
+      "n": 2,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 2,
+        "tags": [
+          "修护肌肤受损屏障",
+          "薇诺娜"
+        ],
+        "desc_len": 109
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.2031,
+      "n": 127,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 2,
+        "density_per_100": 1.57
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 109,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 109,
+        "title_len": 17
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.05,
+      "weight": 0.35,
+      "contribution": 0.0175,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.3467,
+      "weight": 0.3,
+      "contribution": 0.104,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.03,
+      "weight": 0.25,
+      "contribution": 0.0075,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.17,
+      "weight": 0.1,
+      "contribution": 0.017,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.0148,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.015（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 759,
+  "note": {
+    "title": "山姆买的薇诺娜敏感肌特护霜 壁垒！",
+    "author": "Isnuch",
+    "liked": 13,
+    "comment_count": 26,
+    "comments_got": 10,
+    "images": 1
+  }
+}

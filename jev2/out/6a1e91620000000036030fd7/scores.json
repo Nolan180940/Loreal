@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:12:49",
+  "note_id": "6a1e91620000000036030fd7",
+  "total": 0.632,
+  "level": "high",
+  "level_label": "高风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.76,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.68,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.66,
+      "confidence": 0.9,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0,
+          "1": 0.06,
+          "2": 0.9,
+          "3": 0.04
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.06,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "评论 0 条 < 3",
+      "detail": {}
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "评论 0 条 < 4，IQR 无意义",
+      "detail": {}
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "评论 0 条 < 3",
+      "detail": {}
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "评论 0 条 < 3，SD 不可靠",
+      "detail": {}
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "评论 0 条 < 5",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "有时间的评论 0 条 < 3",
+      "detail": {}
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "有 IP 的评论 0 条不足",
+      "detail": {}
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "有 IP 的评论 0 条 < 3",
+      "detail": {}
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "评论数为 0，比值无意义",
+      "detail": {}
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "评论 0 条 < 3",
+      "detail": {}
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.7,
+      "n": 6,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 6,
+        "markers": [
+          "✅",
+          "1️⃣",
+          "2️⃣",
+          "3️⃣",
+          "4️⃣",
+          "🔬"
+        ]
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": null,
+      "n": 0,
+      "missing": true,
+      "missing_reason": "评论 0 条 < 5，比值不稳",
+      "detail": {}
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.2857,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 7,
+        "tags": [
+          "睐斯购",
+          "保税仓",
+          "跨境电商",
+          "兰蔻小黑瓶",
+          "维稳精华",
+          "修护肌底"
+        ],
+        "desc_len": 599
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.0,
+      "n": 618,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 2,
+        "density_per_100": 0.32
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 599,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 599,
+        "title_len": 18
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.68,
+      "weight": 0.35,
+      "contribution": 0.238,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.66,
+      "weight": 0.3,
+      "contribution": 0.198,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.76,
+      "weight": 0.25,
+      "contribution": 0.19,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.06,
+      "weight": 0.1,
+      "contribution": 0.006,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.1971,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.197（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 775,
+  "note": {
+    "title": "兰蔻小黑瓶精华肌底液到底适不适合你？",
+    "author": "NICEGOO睐斯购",
+    "liked": 44,
+    "comment_count": 0,
+    "comments_got": 0,
+    "images": 1
+  }
+}

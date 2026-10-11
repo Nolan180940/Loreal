@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:13:00",
+  "note_id": "6a957d1f000000002003a171",
+  "total": 0.861,
+  "level": "high",
+  "level_label": "高风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.74,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.86,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.9867,
+      "confidence": 0.96,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0,
+          "1": 0,
+          "2": 0.04,
+          "3": 0.96
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.79,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.3333,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 3,
+        "ratio": 0.333
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.625,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 10.0
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.9852,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 9.2
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.2271,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 5.86,
+        "mean": 9.2,
+        "min_len": 2,
+        "max_len": 19
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 9,
+      "missing": true,
+      "missing_reason": "9 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.0,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 55344.4,
+        "first_ms": 1788238728000,
+        "last_ms": 1791559390000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 1.0,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.7233,
+        "distinct": 4
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.8889,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.667,
+        "top1_ip": "浙江",
+        "distinct": 4
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.2765,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 9.56,
+        "liked": 1099,
+        "comment_count": 115
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.0741,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 3,
+        "ratio": 0.333
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 0,
+        "markers": []
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.0,
+      "n": 9,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 4,
+        "ratio": 0.444
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.2857,
+      "n": 7,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 7,
+        "tags": [
+          "薇诺娜特护霜",
+          "修护面霜",
+          "敏感肌面霜",
+          "敏感肌",
+          "面霜",
+          "薇诺娜"
+        ],
+        "desc_len": 371
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.1947,
+      "n": 391,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 6,
+        "density_per_100": 1.53
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 371,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 371,
+        "title_len": 19
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.86,
+      "weight": 0.35,
+      "contribution": 0.301,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.9867,
+      "weight": 0.3,
+      "contribution": 0.296,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.74,
+      "weight": 0.25,
+      "contribution": 0.185,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.79,
+      "weight": 0.1,
+      "contribution": 0.079,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.326,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.326（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 750,
+  "note": {
+    "title": "此物对烂脸的杀伤力为100000%！！",
+    "author": "挖宝小孟",
+    "liked": 1099,
+    "comment_count": 115,
+    "comments_got": 9,
+    "images": 4
+  }
+}

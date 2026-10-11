@@ -1,0 +1,308 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011-141239-304fd6",
+  "config_hash": "efe851c89c90",
+  "model": "jev-1.13",
+  "rule_set": "default",
+  "scored_at": "2026-10-11T14:13:06",
+  "note_id": "6ab0866c000000000b037e92",
+  "total": 0.1405,
+  "level": "low",
+  "level_label": "低风险",
+  "vetoed_by": "",
+  "dimensions": {
+    "is_ad": {
+      "name": "is_ad",
+      "value": 0.02,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "has_risk": {
+      "name": "has_risk",
+      "value": 0.03,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    },
+    "exaggeration": {
+      "name": "exaggeration",
+      "value": 0.4033,
+      "confidence": 0.39,
+      "qtype": "score",
+      "detail": {
+        "legend": {
+          "0": "none",
+          "1": "mild",
+          "2": "exaggerated",
+          "3": "extreme"
+        },
+        "probabilities": {
+          "0": 0.2,
+          "1": 0.43,
+          "2": 0.33,
+          "3": 0.04
+        }
+      }
+    },
+    "is_cta": {
+      "name": "is_cta",
+      "value": 0.04,
+      "confidence": null,
+      "qtype": "noul",
+      "detail": {}
+    }
+  },
+  "signals": {
+    "author_reply_ratio": {
+      "name": "author_reply_ratio",
+      "value": 0.4118,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "author_comments": 6,
+        "ratio": 0.353
+      }
+    },
+    "comment_len_iqr": {
+      "name": "comment_len_iqr",
+      "value": 0.8125,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "iqr": 7.0
+      }
+    },
+    "comment_len_mean": {
+      "name": "comment_len_mean",
+      "value": 0.5373,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "mean": 15.9
+      }
+    },
+    "comment_len_sd": {
+      "name": "comment_len_sd",
+      "value": 0.0,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "sd": 10.26,
+        "mean": 15.9,
+        "min_len": 2,
+        "max_len": 48
+      }
+    },
+    "comment_like_rate": {
+      "name": "comment_like_rate",
+      "value": null,
+      "n": 17,
+      "missing": true,
+      "missing_reason": "17 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
+      "detail": {}
+    },
+    "comment_time_span": {
+      "name": "comment_time_span",
+      "value": 0.0,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "span_minutes": 27369.4,
+        "first_ms": 1789960767000,
+        "last_ms": 1791602932000
+      }
+    },
+    "cta_lexicon": {
+      "name": "cta_lexicon",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "density_per_100": 0.0,
+        "strong": [],
+        "weak": []
+      }
+    },
+    "ip_entropy": {
+      "name": "ip_entropy",
+      "value": 0.3122,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "entropy": 0.8763,
+        "distinct": 9
+      }
+    },
+    "ip_top1_ratio": {
+      "name": "ip_top1_ratio",
+      "value": 0.0,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "top1": 0.353,
+        "top1_ip": "日本",
+        "distinct": 9
+      }
+    },
+    "like_comment_ratio": {
+      "name": "like_comment_ratio",
+      "value": 0.0116,
+      "n": 1,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 0.29,
+        "liked": 17,
+        "comment_count": 58
+      }
+    },
+    "low_effort_ratio": {
+      "name": "low_effort_ratio",
+      "value": 0.0,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "low_effort": 3,
+        "ratio": 0.176
+      }
+    },
+    "structure_markers": {
+      "name": "structure_markers",
+      "value": 0.0,
+      "n": 0,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "marker_count": 0,
+        "markers": []
+      }
+    },
+    "sub_reply_ratio": {
+      "name": "sub_reply_ratio",
+      "value": 0.0,
+      "n": 17,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "replies": 12,
+        "ratio": 0.706
+      }
+    },
+    "tag_count": {
+      "name": "tag_count",
+      "value": 0.0,
+      "n": 4,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "tag_count": 4,
+        "tags": [
+          "保湿面霜",
+          "珂润",
+          "雅漾",
+          "护肤"
+        ],
+        "desc_len": 249
+      }
+    },
+    "text_exclaim_density": {
+      "name": "text_exclaim_density",
+      "value": 0.0,
+      "n": 256,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "exclaims": 0,
+        "density_per_100": 0.0
+      }
+    },
+    "text_length": {
+      "name": "text_length",
+      "value": 0.0,
+      "n": 249,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "desc_len": 249,
+        "title_len": 6
+      }
+    }
+  },
+  "trace": [
+    {
+      "rule": "ad_gate",
+      "action": "veto",
+      "value": 0.0,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "is_ad=0.000 < 0.85"
+    },
+    {
+      "rule": "risk",
+      "action": "contribute",
+      "value": 0.03,
+      "weight": 0.35,
+      "contribution": 0.0105,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "exaggeration",
+      "action": "contribute",
+      "value": 0.4033,
+      "weight": 0.3,
+      "contribution": 0.121,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_ad",
+      "action": "contribute",
+      "value": 0.02,
+      "weight": 0.25,
+      "contribution": 0.005,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "is_cta",
+      "action": "contribute",
+      "value": 0.04,
+      "weight": 0.1,
+      "contribution": 0.004,
+      "skipped": false,
+      "reason": ""
+    },
+    {
+      "rule": "l2_stats",
+      "action": "flag",
+      "value": 0.139,
+      "weight": 0.0,
+      "contribution": 0.0,
+      "skipped": false,
+      "reason": "l2_mean=0.139（仅记录，不计分）"
+    }
+  ],
+  "notes": [],
+  "semantic_ok": true,
+  "elapsed_ms": 725,
+  "note": {
+    "title": "珂润面霜踩雷",
+    "author": "是我啊",
+    "liked": 17,
+    "comment_count": 58,
+    "comments_got": 17,
+    "images": 1
+  }
+}
