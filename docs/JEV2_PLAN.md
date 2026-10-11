@@ -1,6 +1,20 @@
 # jev2 —— 种草真实性判别系统 · 可扩展框架设计
 
-> 状态：**PLAN v2（待确认后动工）**
+> 状态：**已实现（本文档是设计存档，数字不是当前状态）**
+>
+> ⚠️ 本文里写的「**13 个信号**」是**动工前的计划数**，不是实现数。
+> 实际演进（用 `git ls-tree <sha> jev2/src/jev2/signals/` 可复核）：
+>
+> | 阶段 | 提交 | 信号数 | 变化 |
+> |---|---|---:|---|
+> | 本文档（计划） | — | 13 | 只列了 13 个 |
+> | 框架落地 | `a068251` | **14** | 多了一个 `low_effort_ratio`（后来实测 AUC 0.742，是主力之一） |
+> | 1~5 改动落实 | `0e03e20` | **17** | +`tag_count` `structure_markers` `cta_lexicon` |
+> | P0~P2 | `3917be6` | **19** | +`publish_burst` `brand_mention_ratio` |
+>
+> 当前 **19 个注册（18 启用 + 1 禁用 `nickname_dup_rate`）**，
+> 权威数字请跑 `python -m jev2 doctor` 或看 `jev2/README.md`。
+>
 > 前置：旧 jev 已重命名 `legacy-jev/`，保留为对照基线（95.8% 二值一致率）
 > 数据：`data/<note_id>/notes.json`（40 篇，新结构，已验证）
 > 决策器：jev-1.13（OpenCode Zen `systemone`），key 从 opencode `auth.json` 读
