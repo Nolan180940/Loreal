@@ -27,7 +27,7 @@ for _p in (_HERE.parents[1] / "src",                 # <repo>/xhs-cli/src
 
 from xhs_cli.core.link import LinkRef, normalize  # noqa: E402
 from xhs_cli.core.ssr import (  # noqa: E402
-    _dedupe_images, _img_key, parse, prepare, unescape,
+    _dedupe_images, _img_key, parse, parse_note, prepare, unescape,
 )
 from xhs_cli.core.ssr_json import (  # noqa: E402
     _extract_array, _norm_like, flatten, parse_comments_json,
@@ -100,20 +100,26 @@ def test_unescape_handles_quotes() -> None:
 SSR = (
     r'"commentData":{"hasMore":true,"commentCountL1":9,"commentCount":16,'
     r'"comments":[{"status":0,'
-    r'"user":{"userId":"613d769c000000000201fde2","nickname":"Lebesgue"},'
+    r'"user":{"userId":"613d769c000000000201fde2","nickname":"Lebesgue",'
+    r'"aiAgent":false},'
     r'"subCommentCount":2,"subComments":['
     r'{"atUsers":[{"userId":"633d4722000000001802dab6","nickname":"Claude"}],'
     r'"ipLocation":"北京","id":"6ac96ab200000000120034a6",'
     r'"targetComment":{"id":"6ac95d570000000011036337"},'
     r'"likeViewCount":"7","status":0,'
-    r'"user":{"userId":"5be6365a45d49c0001b6bc8a","nickname":"Scott"},'
+    r'"user":{"userId":"5be6365a45d49c0001b6bc8a","nickname":"Scott",'
+    r'"aiAgent":true},'
     r'"content":"高思萌发狂了@Claude Lukas"},'
     r'{"content":"看来他家还是伪装成了私募","ipLocation":"浙江",'
     r'"user":{"userId":"56d122191c07df6826b5d78e","nickname":"葱油饼"},'
     r'"likeCount":"1千+","likeViewCount":"310","status":-2}],'
     r'"id":"6ac95d570000000011036337","ipLocation":"陕西",'
     r'"likeViewCount":"56",'
-    r'"content":"是不是jukuan 加班风格像[doge]","likeCount":0}]}'
+    r'"content":"是不是jukuan 加班风格像[doge]","likeCount":0}]},'
+    # note 级作者 user（在评论数组之后 —— 真实 SSR 里它在 noteSection，
+    # 但 parse_note 是全文 grab，位置无关；放后面是为了不干扰评论的就近配对）
+    r'"user":{"nickName":"雅诗兰黛",'
+    r'"redOfficialVerifyType":"2"}}'
 )
 
 
@@ -189,6 +195,34 @@ def test_flatten_keeps_new_fields() -> None:
     assert flat[0]["like_view_count"] == "56"
     assert flat[2]["like_view_count"] == "310"
     assert flat[2]["status"] == -2
+
+
+def test_parse_comments_json_keeps_ai_agent() -> None:
+    """``aiAgent`` 是平台注册 AI 账号的硬标记，必须采下来。
+
+    实测本语料 1822 条全 False —— 它抓不到真人水军，
+    但 True 时无需统计验证。字段已在 SSR 里，不采是白丢。
+    """
+    top = parse_comments_json(SSR)[0]
+    assert top["ai_agent"] is False
+    r0, _r1 = top["_replies"]
+    assert r0["ai_agent"] is True          # True 也要能透传
+
+
+def test_parse_note_grabs_author_verify_type() -> None:
+    """作者认证类型：品牌官方 = 2，无认证 = 0。
+
+    雅诗兰黛官方帖 is_ad=0.97，这个字段是零成本的交叉验证。
+    """
+    note = parse_note(SSR)
+    assert note["author_verify_type"] == "2"
+    assert note["author"] == "雅诗兰黛"
+
+
+def test_parse_note_verify_type_absent_is_empty() -> None:
+    """没有认证字段时是空串（loader 会转成 -1 = 未采集）。"""
+    note = parse_note(r'"noteId":"6ac95d570000000011036337","title":"x"')
+    assert note["author_verify_type"] == ""
 
 
 def test_parse_comments_json_rejects_garbage() -> None:

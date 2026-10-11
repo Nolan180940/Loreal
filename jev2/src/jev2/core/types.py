@@ -77,6 +77,13 @@ class CommentRow:
     sub_comment_count: int = 0
     #: 楼中楼回复的直接对象 id（可能是另一条楼中楼 —— 嵌套回复）。
     target_id: str = ""
+    #: 平台注册的 AI 账号标记（SSR ``user.aiAgent``）。
+    #:
+    #: ``None`` = 旧数据未采集；``False`` = 真人；``True`` = 平台注册 AI。
+    #: 实测本语料 1822 条全 False/None —— 它抓的是「平台注册的 AI agent」
+    #: （官方 AI 助手 / 品牌 AI 客服），**抓不到真人水军**。
+    #: 但它是硬标记：True 时无需统计验证，直接当「非真人评论」处理。
+    ai_agent: bool | None = None
 
     @property
     def has_view_like(self) -> bool:
@@ -119,6 +126,16 @@ class NoteRecord:
 
     published_ms: int = 0
     ip_location: str = ""
+    #: 作者的官方认证类型（SSR ``user.redOfficialVerifyType``）。
+    #:
+    #: 实测取值：``0`` = 无认证（卖家帖 / KOL 帖 / 普通分享），
+    #: ``2`` = 品牌官方（雅诗兰黛官方活动帖）。
+    #: ``-1`` = 旧数据未采集。
+    #:
+    #: 为什么值钱：**品牌官方号发帖 → is_ad 几乎确定**。
+    #: 雅诗兰黛那篇语义层给 is_ad=0.97，这个字段是零成本的交叉验证。
+    #: 候选信号（``author_is_brand``），等品牌官方帖样本多了再验证。
+    author_verify_type: int = -1
     images: tuple[str, ...] = ()
     comments: tuple[CommentRow, ...] = ()
 
@@ -168,6 +185,19 @@ class NoteRecord:
         信号层必须据此返回 missing，而不是把「没采到」算成「没人赞」。
         """
         return any(c.has_view_like for c in self.comments)
+
+    @property
+    def author_is_brand(self) -> bool | None:
+        """作者是不是品牌官方号。
+
+        ``None`` = 旧数据未采集（``author_verify_type == -1``）。
+        判据：认证类型非 0 即算（实测 2 = 品牌官方；
+        1 大概率是个人黄 V，未实测到 —— 若将来发现 1 是个人认证，
+        这里要收窄成 ``== 2``）。
+        """
+        if self.author_verify_type <= 0:
+            return None if self.author_verify_type < 0 else False
+        return True
 
     def comment_by_id(self, cid: str) -> CommentRow | None:
         """按 ``cid`` 找评论。

@@ -263,6 +263,8 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 | 评论 `like_count` | ⚠️ SSR 的 `likeCount`，**实测 543/543 恒为 "0"** |
 | 评论 `like_view_count` | ✅ 展示给用户看的点赞数，**这个才是真值** |
 | 评论 `status` | 实测 `-2` = 审核中/仅自己可见（卖家帖 5/5 全是 -2） |
+| 评论 `ai_agent` | 平台注册 AI 账号标记。实测全 False（抓不到真人水军，但 True 时是硬证据） |
+| `note.author_verify_type` | 作者认证：`0` 无认证 · `2` 品牌官方（雅诗兰黛）· 旧数据无此键 |
 | `_is_reply` | `true` = 楼中楼；一级评论为 `false` |
 | `_parent_id` | 挂在哪条一级评论下。**一级评论是空串**（字段集一致） |
 | `target_id` | 楼中楼回复的直接对象，可能是另一条楼中楼（嵌套回复） |

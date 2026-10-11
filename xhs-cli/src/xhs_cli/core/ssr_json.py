@@ -149,6 +149,10 @@ def parse_comments_json(html: str) -> list[dict[str, Any]] | None:
             "like_view_count": _norm_like(c.get("likeViewCount")),
             "sub_comment_count": int(c.get("subCommentCount") or 0),
             "status": int(c.get("status") or 0),
+            # 平台注册的 AI 账号标记。实测本语料 1822 条全 False ——
+            # 它抓的是「平台注册的 AI agent」（官方 AI 助手/品牌 AI 客服），
+            # 抓不到真人水军。但它是硬标记：True 时无需统计验证。
+            "ai_agent": bool(u.get("aiAgent")),
             # 一级评论没有父 —— 空值而不是缺键（字段集要一致）
             "_parent_id": "",
             "target_id": "",
@@ -181,6 +185,7 @@ def _replies(parent: dict) -> list[dict[str, Any]]:
             "like_view_count": _norm_like(r.get("likeViewCount")),
             "sub_comment_count": int(r.get("subCommentCount") or 0),
             "status": int(r.get("status") or 0),
+            "ai_agent": bool(u.get("aiAgent")),
             # 楼中楼可以再嵌楼中楼（targetComment 指向另一条楼中楼）
             "target_id": str((r.get("targetComment") or {}).get("id") or ""),
         })

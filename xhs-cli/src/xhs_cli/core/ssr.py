@@ -65,6 +65,7 @@ USER_RE = re.compile(r'"user":\{(?P<body>[^{}]*)\}')
 #: 块体内取 userId / nickname（顺序无关）
 _UID_RE = re.compile(r'"userId":"([0-9a-f]{24})"')
 _NICK_RE = re.compile(r'"nickname":"((?:[^"\\]|\\.)*)"')
+_AI_RE = re.compile(r'"aiAgent":(true|false)')
 
 #: 向前/向后取字段的窗口
 BEFORE_WINDOW = 400
@@ -172,6 +173,29 @@ def _author_ip(h: str) -> str:
     return ip.group(1) if ip else ""
 
 
+def _author_verify(h: str) -> str:
+    """作者的官方认证类型（``redOfficialVerifyType``）。
+
+    实测取值（2026-10-11，4 篇）：
+
+    ====  =============================
+    0     无认证（卖家帖 / KOL 帖 / 普通分享都是 0）
+    2     品牌官方（雅诗兰黛官方活动帖）
+    ====  =============================
+
+    （1 大概率是个人认证黄 V，未实测到，不下结论。）
+
+    为什么值钱：**品牌官方号发帖 → is_ad 几乎确定**。
+    雅诗兰黛那篇语义层给 is_ad=0.97，这个字段是零成本的交叉验证。
+
+    全文 grab 是安全的：评论者的 user 只有 4 个键
+    （userId/nickname/image/aiAgent），没有这个字段，
+    全文唯一出现处就是作者（实测出现 2 次都是作者）。
+    """
+    m = re.search(r'"redOfficialVerifyType"\s*:\s*("?[^,}"]*"?)', h)
+    return m.group(1).strip('"') if m else ""
+
+
 def parse_note(html: str) -> dict[str, Any]:
     """note 级字段 + 图片清单。"""
     h = prepare(html)
@@ -192,6 +216,7 @@ def parse_note(html: str) -> dict[str, Any]:
         "author": grab(h, "nickName") or grab(h, "nickname"),
         "author_id": grab(h, "userId"),
         "ip_location": _author_ip(h),
+        "author_verify_type": _author_verify(h),
         "liked": grab(h, "likedCount"),
         "collected": grab(h, "collectedCount"),
         "comment_count": grab(h, "commentCount"),
@@ -249,10 +274,12 @@ def parse_comments(html: str) -> list[dict[str, Any]]:
         if not uid_m:
             continue                      # 形态1：块体无 userId，跳过
         nick_m = _NICK_RE.search(body)
+        ai_m = _AI_RE.search(body)
         users.append((
             m.start(),
             uid_m.group(1),
             unescape(nick_m.group(1)) if nick_m else "",
+            ai_m.group(1) == "true" if ai_m else None,
         ))
     ips = [(m.start(), m.group(1))
            for m in re.finditer(r'"ipLocation":"([^"]*)"', scope)]
@@ -287,8 +314,10 @@ def parse_comments(html: str) -> list[dict[str, Any]]:
                 out[best] = val
         return out
 
-    uid_map = attach([(p, u) for p, u, _n in users])
-    nick_map = attach([(p, n) for p, _u, n in users])
+    uid_map = attach([(p, u) for p, u, _n, _a in users])
+    nick_map = attach([(p, n) for p, _u, n, _a in users])
+    ai_map = attach([(p, a) for p, _u, _n, a in users
+                     if a is not None])
     ip_map = attach(ips)
     like_map = attach(likes)
     time_map = attach(times)
@@ -334,6 +363,7 @@ def parse_comments(html: str) -> list[dict[str, Any]]:
             "like_view_count": v or "0",
             "sub_comment_count": int(s) if s.isdigit() else 0,
             "status": int(st) if st.lstrip("-").isdigit() else 0,
+            "ai_agent": bool(ai_map.get(idx, False)),
             "_parent_id": target_map.get(idx, ""),
             "target_id": target_map.get(idx, ""),
         })

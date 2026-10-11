@@ -139,6 +139,8 @@ def _comment_row(raw: dict[str, Any], *,
         status=_int(raw.get("status")),
         sub_comment_count=_int(raw.get("sub_comment_count")),
         target_id=str(raw.get("target_id") or ""),
+        # AI 标记：旧数据无键 → None（未采集），不能当成「确认是真人」
+        ai_agent=(bool(raw["ai_agent"]) if "ai_agent" in raw else None),
     )
 
 
@@ -209,6 +211,11 @@ def load_note(path: Path) -> NoteRecord:
         share=parse_count(note.get("share")),
         published_ms=parse_count(note.get("time_ms")),
         ip_location=str(note.get("ip_location") or "").strip(),
+        # 作者认证：缺键/空串 → -1（未采集）；"0" 是有效值（无认证）
+        author_verify_type=(
+            _int(note.get("author_verify_type"), default=-1)
+            if str(note.get("author_verify_type") or "").strip()
+            else -1),
         images=images,
         comments=tuple(comments),
         raw_counts=raw_counts,

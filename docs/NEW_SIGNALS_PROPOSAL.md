@@ -388,3 +388,65 @@ high 篇里 4 篇的 heavy_talker_ratio 是 0.00，low 篇反而一堆长评答�
 原因不变：当前 43 篇只有 3 个跨帖用户，区分度预期有限。
 且需要给信号层加「全局上下文」注入口（架构改动）。
 等数据到 100+ 篇再做。
+
+
+---
+
+## 11. 追加调查：`user.aiAgent` 与 `redOfficialVerifyType`（2026-10-11）
+
+组员问「aiAgent 能不能拿到，能拿到会大用」。查了，结论分两半：
+
+### `aiAgent`：能拿到，但**抓不到真人水军**
+
+| 路线 | 字段名 | 覆盖 | 实测 |
+|---|---|---|---|
+| SSR（匿名，现用） | `user.aiAgent`（bool） | 每条评论的 user 都有（4 键之一） | 543 条全 False |
+| API（登录态，legacy） | `user_info.ai_agent` | 1251 条 | 全 False |
+
+- **note 级作者的 user 没有这个字段**（只有 `redOfficialVerifyType`）
+- 全语料 1822 条评论 **0 个 True**；全文搜 `aiAgent:true` 也是 0
+- 昵称含 "ai" 的（Kairos / ai雨天 / Rainbow）都是真人
+
+**语义判定**：它标记的是**平台注册的 AI agent**（官方 AI 助手「点点」、
+品牌注册的 AI 客服）。人工水军是真人接单，**不会被平台打这个标** ——
+所以它对「抓水军」这个目标基本无效。
+
+**但仍然接进了采集**（成本一行）：
+
+- `ssr_json.py`：评论 user 补 `ai_agent`（快慢路径都补）
+- `CommentRow.ai_agent: bool | None`（None = 旧数据未采集）
+
+理由：它是**硬标记** —— True 时无需统计验证，直接当「非真人评论」
+处理。品牌方用官方 AI 客服在评论区刷「亲这边推荐…」是真实存在的
+玩法，等它出现时数据里已经有标记了。
+
+### 意外收获：`redOfficialVerifyType` 比 aiAgent 值钱
+
+作者的 user 对象里有 `redOfficialVerifyType`（评论者没有）。实测 4 篇：
+
+| 篇 | 作者 | 认证值 | gold |
+|---|---|---:|---|
+| 6ab6a30e | 雅诗兰黛（官方活动帖） | **2** | high |
+| 6ab8e804 | 知学长（成分版）· 卖家帖 | 0 | medium |
+| 6a7ebdfe | 别叫我小趴菜 · KOL 帖 | 0 | high |
+| 6a2682ff | 嘿嘿 · 普通分享 | 0 | low |
+| 69d8c8a6 | 张玲｜Yestar · 医美机构 | 0 | — |
+
+**语义：0 = 无认证，2 = 品牌官方**（1 大概率是个人黄 V，未实测到）。
+
+为什么值钱：**品牌官方号发帖 → is_ad 几乎确定**。
+雅诗兰黛那篇语义层给 is_ad=0.97，这个字段是零成本的交叉验证。
+注意卖家帖和 KOL 帖都是 0 —— 它标记的是「作者是不是品牌本身」，
+不是「是不是营销号」，所以不会误伤 KOL。
+
+已接进采集：`ssr.py` 的 `parse_note` 补 `author_verify_type`，
+`NoteRecord.author_verify_type: int`（-1 = 旧数据未采集）+
+`author_is_brand` 属性。**候选信号 `author_is_brand`**：
+等品牌官方帖样本多了再验证（当前 43 篇只有 1 个 True，无法算 AUC）。
+
+### 验证方法记录
+
+- 离线：legacy-data 的 API 路线数据（1279 条 user_info）查字段覆盖
+- 在线：抓 5 篇（官方帖/卖家帖/KOL/普通/医美机构），全文搜
+  `aiAgent:true` + 逐篇看认证值。控制抓取量（间隔 5s）避免再触发验证码
+- 原始 HTML 已存 `_raw_page.html` 供以后离线复查
