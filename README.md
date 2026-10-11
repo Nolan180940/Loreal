@@ -357,11 +357,11 @@ NoteRecord
 | `comment_len_iqr` | 长度四分位距 | 越小越可疑 | 0.761 |
 | `low_effort_ratio` | 低信息量评论占比 | 越高越可疑 | 0.742 |
 | `comment_time_span` | 评论时间跨度 | 越集中越可疑 | 0.737 |
-| `tag_count` | 话题标签个数（SEO 堆砌） | 越多越可疑 | 0.734 |
 | `text_exclaim_density` | 感叹号密度 | 越高越可疑 | 0.714 |
 | `like_comment_ratio` | 赞评比 | 越高越可疑 | 0.714 |
 | `cta_lexicon` | 引导词词表（私信/优惠券…） | 密度越高越可疑 | 0.697 |
 | `structure_markers` | 模板排版（✅1️⃣💡） | 标记越多越可疑 | 0.680 |
+| `tag_count` | 话题标签个数（SEO 堆砌） | 越多越可疑 | 0.643 |
 | `sub_reply_ratio` | 楼中楼占比 | 越低越可疑 | 0.603 |
 | `ip_top1_ratio` | IP top1 占比 | 越高越可疑 | 0.511 |
 | `author_reply_ratio` | 作者自评占比 | 越高越可疑 | 0.495 |
@@ -369,6 +369,13 @@ NoteRecord
 | `text_length` | 正文长度 | 两个极端可疑 | 0.424 |
 | `comment_like_rate` | 评论点赞非零率 | 越低越可疑 | 全缺失 |
 | `nickname_dup_rate` | 昵称重复率 | **已禁用** | 0.259 反向 |
+
+> AUC = 「随机抽一对（高风险, 非高风险），高风险那篇的值更大的概率」
+> （Mann-Whitney）。0.5 = 无区分力。
+>
+> 上表口径是 **vs 高风险**。同一个信号换个口径会差很多 ——
+> 比如 `tag_count` vs 高风险 0.643，vs「高风险+中风险」0.734。
+> 引数字时先说清口径。
 
 > `value` 是**风险值**（0..1，越大越可疑），原始测量值在 `detail` 里。
 > 比如 `comment_len_sd` 的 `value=0.0` 意思是「这个维度没发现可疑」，
