@@ -209,25 +209,36 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
   "images": ["http://sns-webpic-qc.xhscdn.com/…!h5_1080jpg"],  // = note.images
   "comments": [
     {
+      "id": "6ac7aadb0000000012034a6",  // 评论 id（父子配对的主键）
       "user_id": "61599e8000000000020234ab",
       "nickname": "长夜.",
       "content": "一共才十四亿人，但是精神病人数接近两亿…",
       "ip_location": "山东",         // 评论 IP 可得
-      "like_count": "0",            // 字符串
+      "like_count": "0",            // ⚠️ SSR 的内部计数器，**恒为 0**
+      "like_view_count": "56",      // ✅ 展示给用户看的点赞数（真值）
+      "sub_comment_count": 2,        // 楼中楼声明数
+      "status": 0,                   // -2 = 审核中/仅自己可见
       "time": 1791470300000,        // 整数（毫秒）
       "is_author": false,
-      "_is_reply": false
+      "_is_reply": false,
+      "_parent_id": "",             // 一级评论为空（字段集与楼中楼一致）
+      "target_id": ""               // 楼中楼：回复的直接对象 id
     },
     {
+      "id": "6ac96ab200000000120034a6",
       "user_id": "667659460000000007007fc4",
       "nickname": "胦鱼",
       "content": "骗你的，其实本人也坚持不了也有抑郁[笑哭R]",
       "ip_location": "浙江",
       "like_count": "0",
+      "like_view_count": "0",
+      "sub_comment_count": 0,
+      "status": 0,
       "time": 1791470950000,
       "is_author": false,
       "_is_reply": true,            // true = 楼中楼
-      "_parent_id": "6ac7aadb…"     // 仅楼中楼有此字段，指向父评论 id
+      "_parent_id": "6ac7aadb…",    // 挂在哪条一级评论下（用 cid 配对）
+      "target_id": "6ac7aadb…"      // 回复的直接对象（可能是另一条楼中楼）
     }
   ],
   "declared": 523,                  // 页面声明的评论总数
@@ -248,9 +259,13 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 | `note.*` 的计数字段 | 都是**字符串**（`"7546"`），不是数字 |
 | `time_ms` | **毫秒**时间戳，字符串 |
 | 评论 `time` | **毫秒**时间戳，整数 |
-| 评论 `like_count` | 字符串，可能是 `"1千+"` 这类展示值 |
+| 评论 `id` | 评论唯一 id。楼中楼的 `_parent_id` / `target_id` 指向它 |
+| 评论 `like_count` | ⚠️ SSR 的 `likeCount`，**实测 543/543 恒为 "0"** |
+| 评论 `like_view_count` | ✅ 展示给用户看的点赞数，**这个才是真值** |
+| 评论 `status` | 实测 `-2` = 审核中/仅自己可见（卖家帖 5/5 全是 -2） |
 | `_is_reply` | `true` = 楼中楼；一级评论为 `false` |
-| `_parent_id` | **只有**楼中楼才有 |
+| `_parent_id` | 挂在哪条一级评论下。**一级评论是空串**（字段集一致） |
+| `target_id` | 楼中楼回复的直接对象，可能是另一条楼中楼（嵌套回复） |
 | `comments` 顺序 | 一级评论 + 其楼中楼紧跟其后，非严格时间序 |
 | `complete` | `got >= declared`；匿名态几乎总是 `false` |
 | `image_files` | 仅 `--out` 时有。本地图片文件名列表 |
@@ -273,7 +288,8 @@ python -m xhs_cli parse "https://xhslink.cn/o/9yWznlCm2pp" --save note.json
 | 该 5 条一级评论下的楼中楼 | ✅ | 全部带出 |
 | 评论者昵称 / 正文 | ✅ | |
 | **评论 IP 属地** | ✅ | |
-| 评论点赞 | ⚠️ | 绝大多数是真实的 0 |
+| **评论点赞** | ✅ | 读 `like_view_count`（`like_count` 是恒 0 的内部计数器） |
+| **评论状态** | ⚠️ | `status=-2` = 审核中/仅自己可见 |
 | 评论翻页（第 6 条一级起） | ❌ | 分页接口返回 461 |
 | 搜索页 / 用户主页 | ❌ | 登录墙 |
 
@@ -350,7 +366,7 @@ def clean_tags(tags):
 ## 开发
 
 ```powershell
-# 测试（39 个用例）
+# 测试（49 个用例）
 D:\LOreal-ai\.venv\Scripts\python.exe -m pytest xhs-cli/tests -q
 ```
 

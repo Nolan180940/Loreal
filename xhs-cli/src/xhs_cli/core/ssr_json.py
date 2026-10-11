@@ -90,7 +90,43 @@ def parse_comments_raw(html: str) -> list[dict[str, Any]] | None:
 
 
 def parse_comments_json(html: str) -> list[dict[str, Any]] | None:
-    """括号配对 + json.loads。失败返回 None（让调用方退化到正则）。"""
+    """括号配对 + json.loads。失败返回 None（让调用方退化到正则）。
+
+    字段取舍（2026-10-11 实测后修正）
+    --------------------------------
+    SSR 原始对象里有 14 个键，早先只取了 6 个，丢了 4 个**下游要用**的：
+
+    ==================  ================================================
+    ``id``              评论 id。**父子配对的主键** —— 楼中楼的
+                        ``targetComment.id`` 指向它。丢了它，
+                        下游拿到的 ``_parent_id`` 就是悬空指针。
+    ``likeViewCount``   **展示给用户看的点赞数**（实测 310/56/24 这种真值）。
+                        早先取的是 ``likeCount``，它**恒为 0** ——
+                        于是下游误以为「平台不填充点赞」。
+
+                        〘语义怎么定的〙字段名有歧义（view 可能是「浏览」），
+                        用数值分布排除：实测某帖 5373 赞 / 1980 评论，
+                        其热评的 ``likeViewCount`` 只有 310/56/24，
+                        且多条为 0。若它是**浏览量**，
+                        热评不可能只有几百，更不可能为 0
+                        （被展示过的评论必然有人看过）。
+                        所以只能是点赞。
+                        ⚠️ 仍建议在 UI 上人工比对一次（只需一篇）。
+    ``subCommentCount`` 楼中楼声明数。可判断楼中楼是否抓全。
+    ``status``          评论状态。实测 ``-2`` = 审核中/仅自己可见
+                        （卖家帖 5/5 全是 -2），本身是个信号。
+    ==================  ================================================
+
+    ``like_count`` **保持原样不动**（就是 ``likeCount``，恒 0）。
+    不改成 ``likeViewCount`` 是为了让新旧数据的字段含义不变 ——
+    改字段含义会让「旧数据的 0」和「新数据的 310」无法区分。
+    要真实点赞请读 ``like_view_count``。
+
+    **一级与楼中楼字段集完全一致**（差异用空值/``_is_reply`` 表达）——
+    这样下游不用写 ``if "id" in c`` 这类分支，漏一处就是静默错。
+    代价：``_parent_id`` 不再能当「是不是楼中楼」的判据，
+    但那本来该看 ``_is_reply``。
+    """
     data = parse_comments_raw(html)
     if data is None:
         return None
@@ -108,6 +144,14 @@ def parse_comments_json(html: str) -> list[dict[str, Any]] | None:
             "is_author": "is_author" in (c.get("showTags")
                                          or c.get("show_tags") or []),
             "_is_reply": False,
+            # ---- 2026-10-11 新增（见 docstring 的字段取舍）----
+            "id": str(c.get("id") or ""),
+            "like_view_count": _norm_like(c.get("likeViewCount")),
+            "sub_comment_count": int(c.get("subCommentCount") or 0),
+            "status": int(c.get("status") or 0),
+            # 一级评论没有父 —— 空值而不是缺键（字段集要一致）
+            "_parent_id": "",
+            "target_id": "",
             # 楼中楼内联在 subComments
             "_replies": _replies(c),
         })
@@ -132,6 +176,13 @@ def _replies(parent: dict) -> list[dict[str, Any]]:
                                          or r.get("show_tags") or []),
             "_is_reply": True,
             "_parent_id": str(parent.get("id") or ""),
+            # ---- 2026-10-11 新增 ----
+            "id": str(r.get("id") or ""),
+            "like_view_count": _norm_like(r.get("likeViewCount")),
+            "sub_comment_count": int(r.get("subCommentCount") or 0),
+            "status": int(r.get("status") or 0),
+            # 楼中楼可以再嵌楼中楼（targetComment 指向另一条楼中楼）
+            "target_id": str((r.get("targetComment") or {}).get("id") or ""),
         })
     return out
 

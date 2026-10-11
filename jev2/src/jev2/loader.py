@@ -87,13 +87,12 @@ def _int(v: Any, default: int = 0) -> int:
 def comment_key(raw: dict[str, Any]) -> str:
     """评论的唯一标识。
 
-    **新结构里没有评论 ``id``**（实测 498/498 行都只有 ``user_id``）——
-    xhs-cli 的扁平化输出丢了它。所以这里分层取：
+    **优先用 ``id``** —— 2026-10-11 之后采集的 ``notes.json`` 有这个字段，
+    而且楼中楼的 ``_parent_id`` 指向的就是它。用它做 key，
+    ``parent_id`` 才能真的在评论集合里查到对应对象。
 
-    1. 有 ``id`` 就用（将来数据源补上这个字段时自动生效）
-    2. 否则用 ``user_id|time|content[:20]``
-
-    第 2 种的唯一性实测过：498 行里 0 组重复。
+    旧数据（无 ``id``）退化到 ``user_id|time|content[:20]``：
+    第 2 种的唯一性实测过（498 行里 0 组重复）。
     取 content 前 20 字是为了避免超长文本参与比较；
     真正的重复评论（同人同时同文）本来也该视为同一条。
     """
@@ -135,6 +134,11 @@ def _comment_row(raw: dict[str, Any], *,
         is_author=is_author,
         is_reply=bool(raw.get("_is_reply")),
         parent_id=str(raw.get("_parent_id") or ""),
+        # 旧数据没这四个键 —— 空值表示「没采到」，不是「值是 0」
+        like_view_count=str(raw.get("like_view_count") or "").strip(),
+        status=_int(raw.get("status")),
+        sub_comment_count=_int(raw.get("sub_comment_count")),
+        target_id=str(raw.get("target_id") or ""),
     )
 
 

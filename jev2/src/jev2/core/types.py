@@ -55,11 +55,39 @@ class CommentRow:
     content: str
     nickname: str
     ip_location: str
-    like_count: str          # 保持字符串：可能是 "1千+" 这类展示值
+    like_count: str          # ⚠️ SSR 的 likeCount，**恒为 "0"**（内部计数器）
     time_ms: int
     is_author: bool          # ⚠️ SSR 恒 False，见 loader 的兜底推导
     is_reply: bool
-    parent_id: str = ""      # 仅楼中楼有
+    parent_id: str = ""      # 楼中楼：挂在哪条一级评论下（用 cid 配对）
+
+    # ---- 2026-10-11 新增（旧数据没有这些键，默认值兼容）----
+
+    #: **展示给用户看的点赞数**。与 ``like_count`` 不同，这个有真值
+    #: （实测 310/56/24 这种）。旧数据为空串 —— 那是**没采到**，
+    #: 不是「没人赞」，所以信号层要按缺失处理。
+    #:
+    #: 语义依据：某帖 5373 赞 / 1980 评论，热评的该值只有 310/56/24
+    #: 且多条为 0 —— 若是「浏览量」不可能这么低（被展示过就必然有人看）。
+    like_view_count: str = ""
+    #: 评论状态。实测 ``-2`` = 审核中/仅自己可见（卖家帖 5/5 全是 -2）。
+    #: 旧数据恒 0，无法区分「正常」与「未采集」。
+    status: int = 0
+    #: 楼中楼声明数（可判断楼中楼是否抓全）。
+    sub_comment_count: int = 0
+    #: 楼中楼回复的直接对象 id（可能是另一条楼中楼 —— 嵌套回复）。
+    target_id: str = ""
+
+    @property
+    def has_view_like(self) -> bool:
+        """这个点赞数是不是**真的采到了**。
+
+        旧数据的 ``like_count`` 恒 "0"、``like_view_count`` 恒空，
+        两者都不是真值。信号层必须先问这个属性，
+        否则会把「没采到」当成「没人赞」——那正是 `comment_like_rate`
+        当初「恒 missing」的成因。
+        """
+        return bool(self.like_view_count)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -130,6 +158,34 @@ class NoteRecord:
         「评论者昵称 == 作者昵称」兜底推导，结果写在这个标志里。
         """
         return tuple(c for c in self.comments if c.is_author)
+
+    @property
+    def has_view_likes(self) -> bool:
+        """这一篇的评论点赞数**采到了没有**。
+
+        2026-10-11 之前的 ``data/`` 全是旧格式（``like_count`` 恒 "0"，
+        无 ``like_view_count``），此时这个属性是 False ——
+        信号层必须据此返回 missing，而不是把「没采到」算成「没人赞」。
+        """
+        return any(c.has_view_like for c in self.comments)
+
+    def comment_by_id(self, cid: str) -> CommentRow | None:
+        """按 ``cid`` 找评论。
+
+        有 ``id`` 字段的数据里，楼中楼的 ``parent_id`` 就是一级评论的
+        ``cid`` —— 所以这个查找能把回复真的挂回父评论。
+        旧数据（cid 是拼出来的）查不到，返回 None。
+        """
+        if not cid:
+            return None
+        for c in self.comments:
+            if c.cid == cid:
+                return c
+        return None
+
+    def children_of(self, cid: str) -> tuple[CommentRow, ...]:
+        """直接挂在某条评论下的楼中楼。"""
+        return tuple(c for c in self.comments if c.parent_id == cid)
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

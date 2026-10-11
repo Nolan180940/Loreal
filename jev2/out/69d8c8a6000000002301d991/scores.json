@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "run_id": "20261011-143117-ccbb56",
+  "run_id": "20261011-204035-21df8e",
   "config_hash": "efe851c89c90",
   "model": "jev-1.13",
   "rule_set": "default",
-  "scored_at": "2026-10-11T14:31:18",
+  "scored_at": "2026-10-11T20:40:36",
   "note_id": "69d8c8a6000000002301d991",
   "total": 1.0,
   "level": "high",
@@ -20,7 +20,7 @@
     },
     "has_risk": {
       "name": "has_risk",
-      "value": 0.31,
+      "value": 0.34,
       "confidence": null,
       "qtype": "noul",
       "detail": {}
@@ -47,7 +47,7 @@
     },
     "is_cta": {
       "name": "is_cta",
-      "value": 0.68,
+      "value": 0.71,
       "confidence": null,
       "qtype": "noul",
       "detail": {}
@@ -63,6 +63,18 @@
       "detail": {
         "author_comments": 6,
         "ratio": 0.462
+      }
+    },
+    "brand_mention_ratio": {
+      "name": "brand_mention_ratio",
+      "value": 0.0,
+      "n": 13,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 0.0,
+        "hits": 0,
+        "words": 9
       }
     },
     "comment_len_iqr": {
@@ -100,11 +112,15 @@
     },
     "comment_like_rate": {
       "name": "comment_like_rate",
-      "value": null,
+      "value": 0.6154,
       "n": 13,
-      "missing": true,
-      "missing_reason": "13 条评论点赞全为 0 —— 疑似匿名态未填充该字段，不作为刷评证据",
-      "detail": {}
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "nonzero": 1,
+        "rate": 0.077,
+        "with_data": 13
+      }
     },
     "comment_time_span": {
       "name": "comment_time_span",
@@ -174,6 +190,19 @@
       "detail": {
         "low_effort": 10,
         "ratio": 0.769
+      }
+    },
+    "publish_burst": {
+      "name": "publish_burst",
+      "value": 0.0628,
+      "n": 13,
+      "missing": false,
+      "missing_reason": "",
+      "detail": {
+        "ratio": 0.077,
+        "in_window": 1,
+        "window_min": 60.0,
+        "ratio_24h": 0.077
       }
     },
     "structure_markers": {
@@ -253,9 +282,9 @@
     {
       "rule": "risk",
       "action": "contribute",
-      "value": 0.31,
+      "value": 0.34,
       "weight": 0.35,
-      "contribution": 0.1085,
+      "contribution": 0.119,
       "skipped": false,
       "reason": ""
     },
@@ -280,27 +309,27 @@
     {
       "rule": "is_cta",
       "action": "contribute",
-      "value": 0.68,
+      "value": 0.71,
       "weight": 0.1,
-      "contribution": 0.068,
+      "contribution": 0.071,
       "skipped": false,
       "reason": ""
     },
     {
       "rule": "l2_stats",
       "action": "flag",
-      "value": 0.3981,
+      "value": 0.3694,
       "weight": 0.0,
       "contribution": 0.0,
       "skipped": false,
-      "reason": "l2_mean=0.398（仅记录，不计分）"
+      "reason": "l2_mean=0.369（仅记录，不计分）"
     }
   ],
   "notes": [
     "一票否决命中：ad_gate（is_ad ≥ 0.85 一票否决。legacy-jev 实测：加权平均会把纯广告稀释（官方活动贴 is_ad=0.96 被拉到加权 0.642 → 误判中风险），加这道门后高风险召回 40% → 100%。）"
   ],
   "semantic_ok": true,
-  "elapsed_ms": 774,
+  "elapsed_ms": 906,
   "note": {
     "title": "上海微调升级美貌，这就是原生高智脸的魅力~",
     "author": "张玲｜Yestar",

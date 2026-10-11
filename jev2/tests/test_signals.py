@@ -34,12 +34,22 @@ from jev2.signals import _lib                                     # noqa: E402
 def mk_comment(text: str, *, ip: str = "上海", nick: str = "u1",
                like: str = "0", t: int = 1_700_000_000_000,
                reply: bool = False, author: str = "",
-               parent: str = "") -> CommentRow:
+               parent: str = "", view: str | None = None,
+               status: int = 0, cid: str = "") -> CommentRow:
+    """造一条评论。
+
+    ``like`` 对应 ``like_count``（SSR 的内部计数器，恒 0）；
+    ``view`` 对应 ``like_view_count``（**展示值**）。
+    默认 ``view=None`` → 空串，表示「旧数据，没采到」；
+    要测真实点赞得显式传 ``view=``。
+    """
     return CommentRow(
-        cid=f"{nick}|{t}|{text[:20]}",
+        cid=cid or f"{nick}|{t}|{text[:20]}",
         content=text, nickname=nick, ip_location=ip,
         like_count=like, time_ms=t, is_author=nick == author,
         is_reply=reply, parent_id=parent,
+        like_view_count="" if view is None else view,
+        status=status,
     )
 
 
@@ -266,20 +276,216 @@ def test_low_effort_direction_more_is_riskier() -> None:
 
 # --------------------------------------------------------------- 边界
 
-def test_comment_like_rate_missing_when_all_zero() -> None:
-    """全 0 点赞判为「字段未填充」而非「刷评」—— 否则会误伤所有帖。"""
+def test_comment_like_rate_missing_on_old_data() -> None:
+    """旧数据（无 like_view_count）→ missing，且原因要说清是**没采到**。
+
+    回归：这条曾经写成「全 0 就判未填充」。那个结论是错的 ——
+    全 0 是因为采集层取错了字段（取了恒 0 的 likeCount，
+    丢了有真值的 likeViewCount），不是平台不填充。
+    """
     cs = [mk_comment(f"c{i}", like="0", nick=f"u{i}") for i in range(8)]
     r = run("comment_like_rate", mk_note(comments=cs))
     assert r.missing
-    assert "未填充" in r.missing_reason or "全为 0" in r.missing_reason
+    assert "未采集" in r.missing_reason or "没采到" in r.missing_reason
+    # 不能再说「平台不给」——那是错归因
+    assert "平台" not in r.missing_reason
 
 
-def test_comment_like_rate_works_when_some_nonzero() -> None:
-    cs = [mk_comment(f"c{i}", like="1" if i < 4 else "0", nick=f"u{i}")
+def test_comment_like_rate_uses_view_count() -> None:
+    """有新字段时用**展示点赞**算非零率。"""
+    cs = [mk_comment(f"c{i}", view="1" if i < 4 else "0", nick=f"u{i}")
           for i in range(8)]
     r = run("comment_like_rate", mk_note(comments=cs))
     assert not r.missing
     assert r.value == pytest.approx(0.0)      # 非零率 50% ≫ 20%，不风险
+    assert r.detail["rate"] == pytest.approx(0.5)
+
+
+def test_comment_like_rate_flags_all_zero_view() -> None:
+    """真的采到了、且全是 0 → 这是**真信号**，不是 missing。
+
+    与「没采到」必须分开：前者是「刷评痕迹」，后者是「没有数据」。
+    """
+    cs = [mk_comment(f"c{i}", view="0", nick=f"u{i}") for i in range(8)]
+    r = run("comment_like_rate", mk_note(comments=cs))
+    assert not r.missing
+    assert r.value == pytest.approx(1.0)      # 非零率 0 → 满风险
+    assert r.detail["nonzero"] == 0
+
+
+def test_comment_like_rate_ignores_like_count() -> None:
+    """``like_count`` 不再参与 —— 它是恒 0 的内部计数器。"""
+    # like_count 有值但 view 没有 → 仍 missing
+    a = [mk_comment(f"c{i}", like="999", nick=f"u{i}") for i in range(8)]
+    assert run("comment_like_rate", mk_note(comments=a)).missing
+    # 反之 view 有值就算得出
+    b = [mk_comment(f"c{i}", like="0", view="5", nick=f"u{i}")
+         for i in range(8)]
+    assert not run("comment_like_rate", mk_note(comments=b)).missing
+
+
+# ------------------------------------------------- publish_burst（2026-10-11）
+
+PUB = 1_700_000_000_000
+
+
+def test_publish_burst_direction_more_is_riskier() -> None:
+    """发布后 1 小时内占比越高越可疑。"""
+    burst = [mk_comment(f"c{i}", t=PUB + i * 60_000, nick=f"u{i}")
+             for i in range(6)]                     # 全在 5 分钟内
+    slow = [mk_comment(f"c{i}", t=PUB + (i + 1) * 86_400_000,
+                       nick=f"u{i}") for i in range(6)]   # 每天一条
+    b = run("publish_burst", mk_note(comments=burst,
+                                     published_ms=PUB))
+    s = run("publish_burst", mk_note(comments=slow, published_ms=PUB))
+    assert b.value > s.value
+    assert b.value == pytest.approx(0.7)          # 满格（有上限）
+    assert s.value == pytest.approx(0.0)
+
+
+def test_publish_burst_threshold_not_above_distribution() -> None:
+    """回归：``_LO`` 曾写成 0.15，把 6 篇 high 里 4 篇压成 0。
+
+    high 篇的占比散布在 0.00~0.43，阈值必须贴近 0 才留得住次序。
+    """
+    # 占比 1/6 ≈ 0.167 —— 必须 > 0（旧阈值 0.15 下只有 0.03，几乎压平）
+    cs = [mk_comment("c0", t=PUB + 60_000, nick="u0")]
+    cs += [mk_comment(f"c{i}", t=PUB + i * 86_400_000, nick=f"u{i}")
+           for i in range(1, 6)]
+    r = run("publish_burst", mk_note(comments=cs, published_ms=PUB))
+    assert r.value > 0.2, f"占比 {r.detail['ratio']} 不该被压成 {r.value}"
+
+
+def test_publish_burst_ignores_comments_before_publish() -> None:
+    """发布前的评论（置顶旧评）不算，也不能撑大分母。"""
+    cs = [mk_comment("old", t=PUB - 86_400_000, nick="old")]
+    cs += [mk_comment(f"c{i}", t=PUB + i * 60_000, nick=f"u{i}")
+           for i in range(5)]
+    r = run("publish_burst", mk_note(comments=cs, published_ms=PUB))
+    assert r.n == 5                       # 分母只有发布后的 5 条
+    assert r.detail["ratio"] == pytest.approx(1.0)
+
+
+def test_publish_burst_missing_without_publish_time() -> None:
+    cs = [mk_comment(f"c{i}", t=PUB + i, nick=f"u{i}") for i in range(6)]
+    r = run("publish_burst", mk_note(comments=cs, published_ms=0))
+    assert r.missing
+    assert "发布时间" in r.missing_reason
+
+
+def test_publish_burst_missing_when_too_few_after_publish() -> None:
+    """全部评论都早于发布时间 → 报 missing 而不是算个 0。"""
+    cs = [mk_comment(f"c{i}", t=PUB - 1000 - i, nick=f"u{i}")
+          for i in range(8)]
+    r = run("publish_burst", mk_note(comments=cs, published_ms=PUB))
+    assert r.missing
+    assert "置顶旧评" in r.missing_reason
+
+
+def test_publish_burst_records_24h_ratio() -> None:
+    """detail 里要留 24h 占比 —— 调阈值时不用重算。"""
+    cs = [mk_comment(f"c{i}", t=PUB + i * 60_000, nick=f"u{i}")
+          for i in range(4)]
+    r = run("publish_burst", mk_note(comments=cs, published_ms=PUB))
+    assert r.detail["ratio_24h"] == pytest.approx(1.0)
+    assert r.detail["window_min"] == 60.0
+
+
+# ------------------------------------------- brand_mention_ratio（2026-10-11）
+
+def test_brand_mention_direction_more_is_riskier() -> None:
+    """评论里念产品名的比例越高越可疑。"""
+    tags = ("兰蔻小黑瓶", "抗初老", "眼霜")
+    brandy = [mk_comment("兰蔻小黑瓶真的很好用", nick=f"u{i}")
+              for i in range(6)]
+    plain = [mk_comment("我用了三个月皮肤稳定了", nick=f"u{i}")
+             for i in range(6)]
+    b = run("brand_mention_ratio", mk_note(comments=brandy, tags=tags))
+    p = run("brand_mention_ratio", mk_note(comments=plain, tags=tags))
+    assert b.value > p.value
+    assert b.value == pytest.approx(0.6)          # 满格（有上限）
+    assert p.value == pytest.approx(0.0)
+
+
+def test_brand_mention_threshold_not_below_distribution() -> None:
+    """回归：``_HI`` 曾写成 0.30，低于实测 p75(0.438)，大半篇被压平。
+
+    占比 0.30 上下必须还能区分 —— 旧的 _HI 下它们都是同一个值。
+    """
+    tags = ("兰蔻小黑瓶", "抗初老", "眼霜")
+    def at(k: int):
+        cs = [mk_comment("兰蔻小黑瓶很好用", nick=f"u{i}") for i in range(k)]
+        cs += [mk_comment("我用了三个月", nick=f"v{i}")
+               for i in range(10 - k)]
+        return run("brand_mention_ratio", mk_note(comments=cs, tags=tags))
+    a, b = at(3), at(6)                 # 占比 0.3 vs 0.6
+    assert b.value > a.value, f"{b.value} 应大于 {a.value}（_HI 太低压平了）"
+
+
+def test_brand_mention_uses_lexicon_fallback() -> None:
+    """tags 为空时靠词池兜底 —— 实测 43 篇里 7 篇的 tags 解析失败。
+
+    没有兜底的话，那些篇直接报 missing，覆盖率从 37/40 掉到 30/40。
+    """
+    cs = [mk_comment("雅诗兰黛小棕瓶真好用", nick=f"u{i}")
+          for i in range(6)]
+    # tags 为空，但标题含词池里的词
+    r = run("brand_mention_ratio",
+            mk_note(comments=cs, tags=(), title="雅诗兰黛小棕瓶空瓶记"))
+    assert not r.missing
+    assert r.value > 0
+    assert r.detail["hits"] == 6
+
+
+def test_brand_mention_missing_without_any_lexicon() -> None:
+    """词表为空 → missing（不是 0）—— 「认不出品牌」≠「评论没提品牌」。"""
+    cs = [mk_comment("真好用", nick=f"u{i}") for i in range(6)]
+    r = run("brand_mention_ratio",
+            mk_note(comments=cs, tags=(), title="今天心情不错",
+                    desc="随便写点什么，和品牌无关的日常记录"))
+    assert r.missing
+    assert "没识别出品牌" in r.missing_reason
+
+
+def test_brand_mention_records_word_count() -> None:
+    """detail 里要留词表规模 —— 分辨「词表太窄」还是「真没提及」。"""
+    cs = [mk_comment("兰蔻小黑瓶", nick=f"u{i}") for i in range(6)]
+    r = run("brand_mention_ratio",
+            mk_note(comments=cs, tags=("兰蔻小黑瓶", "抗初老")))
+    assert r.detail["words"] >= 2
+
+
+def test_lexicon_is_generated_and_nonempty() -> None:
+    """词池必须存在且非空 —— 它是 brand_mention_ratio 的兜底。
+
+    空词池不会报错，只会让信号静默退化（tags 解析失败的篇全变 missing）。
+    """
+    from jev2.signals._lexicon import BRAND_WORDS
+    assert len(BRAND_WORDS) >= 20, f"词池只有 {len(BRAND_WORDS)} 词"
+    assert all(len(w) >= 2 for w in BRAND_WORDS), "词池混入了单字词"
+    assert "笔记" not in BRAND_WORDS, "词池混入了假标签「笔记」"
+    # 去重 + 有序（生成器保证），否则 brand_mention_ratio 的词表会漂
+    assert len(set(BRAND_WORDS)) == len(BRAND_WORDS)
+
+
+def test_lexicon_matches_generator() -> None:
+    """词池必须与生成器一致 —— 防止手改或数据变了忘了重新生成。
+
+    词池是**词表不是阈值**，但它决定了覆盖率（实测 30/40 → 37/40），
+    过期会让新品牌的笔记静默退化到 missing。
+    """
+    import importlib.util
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location(
+        "_build_lexicon", root / "tools" / "build_lexicon.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    pool, n_notes = mod.collect(root.parent / "data")
+    if n_notes == 0:
+        pytest.skip("没有 data/，跳过词池一致性检查")
+    assert mod.render(pool, n_notes) == mod.OUT.read_text(encoding="utf-8"), (
+        "词池已过期，跑 python jev2/tools/build_lexicon.py 重新生成")
 
 
 # --------------------------------------------------------------- 新信号（第二轮转正）

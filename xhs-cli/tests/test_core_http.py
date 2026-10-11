@@ -104,12 +104,15 @@ SSR = (
     r'"subCommentCount":2,"subComments":['
     r'{"atUsers":[{"userId":"633d4722000000001802dab6","nickname":"Claude"}],'
     r'"ipLocation":"北京","id":"6ac96ab200000000120034a6",'
+    r'"targetComment":{"id":"6ac95d570000000011036337"},'
+    r'"likeViewCount":"7","status":0,'
     r'"user":{"userId":"5be6365a45d49c0001b6bc8a","nickname":"Scott"},'
     r'"content":"高思萌发狂了@Claude Lukas"},'
     r'{"content":"看来他家还是伪装成了私募","ipLocation":"浙江",'
     r'"user":{"userId":"56d122191c07df6826b5d78e","nickname":"葱油饼"},'
-    r'"likeCount":"1千+"}],'
+    r'"likeCount":"1千+","likeViewCount":"310","status":-2}],'
     r'"id":"6ac95d570000000011036337","ipLocation":"陕西",'
+    r'"likeViewCount":"56",'
     r'"content":"是不是jukuan 加班风格像[doge]","likeCount":0}]}'
 )
 
@@ -141,6 +144,51 @@ def test_parse_comments_json_structure() -> None:
     assert r1["like_count"] == "1千+"
     assert r1["_is_reply"] is True
     assert r1["_parent_id"] == "6ac95d570000000011036337"
+
+
+def test_parse_comments_json_keeps_id_and_view_count() -> None:
+    """回归：``id`` / ``likeViewCount`` / ``status`` 曾被丢掉。
+
+    - ``id`` 是父子配对的主键（楼中楼的 ``targetComment.id`` 指向它）。
+      丢了它，``_parent_id`` 就是悬空指针 —— 下游无法把回复挂回父评论。
+    - ``likeViewCount`` 才是**展示给用户看的点赞数**；
+      早先取的 ``likeCount`` 恒为 0，导致下游误以为「平台不填充点赞」。
+    - ``status=-2`` 实测是「审核中/仅自己可见」（卖家帖 5/5 全是 -2）。
+    """
+    top = parse_comments_json(SSR)[0]
+    # 一级：id 就是楼中楼 _parent_id 指向的那个
+    assert top["id"] == "6ac95d570000000011036337"
+    assert top["like_view_count"] == "56"      # 真值
+    assert top["like_count"] == "0"           # 内部计数器，保持原样不动
+    assert top["sub_comment_count"] == 2      # 声明 2 条楼中楼
+    r0, r1 = top["_replies"]
+    assert r0["id"] == "6ac96ab200000000120034a6"
+    assert r0["like_view_count"] == "7"
+    assert r1["like_view_count"] == "310"
+    assert r1["status"] == -2                 # 负数状态要能解析
+    # 父子配对闭环：楼中楼记的父 id 必须能在同篇评论里找到
+    ids = {top["id"]} | {r["id"] for r in top["_replies"]}
+    assert r0["_parent_id"] in ids
+    assert r1["_parent_id"] in ids
+
+
+def test_parse_comments_json_fields_are_uniform() -> None:
+    """一级与楼中楼**字段集必须一致**。
+
+    不一致的话下游得写 ``if "id" in c`` 这种分支，很容易漏一处。
+    """
+    top = parse_comments_json(SSR)[0]
+    flat = flatten(parse_comments_json(SSR))
+    base = set(top) - {"_replies"}
+    for c in flat:
+        assert set(c) == base, f"字段不一致: {set(c) ^ base}"
+
+
+def test_flatten_keeps_new_fields() -> None:
+    flat = flatten(parse_comments_json(SSR))
+    assert flat[0]["like_view_count"] == "56"
+    assert flat[2]["like_view_count"] == "310"
+    assert flat[2]["status"] == -2
 
 
 def test_parse_comments_json_rejects_garbage() -> None:

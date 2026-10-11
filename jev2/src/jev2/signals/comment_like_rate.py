@@ -6,14 +6,32 @@
 刷评账号之间不会互相点赞（成本高且无意义），所以刷评帖的
 评论点赞容易集体为 0。
 
-⚠️ 当前数据的限制（实测 498/498 全为 "0"）
-----------------------------------------
-匿名态 SSR 拿到的 ``like_count`` **全部是 0** —— 不是「真的都没人赞」，
-而是这个字段在第一屏内联数据里没被填充。
+⚠️ 踩过的坑：字段取错了，不是平台不给（2026-10-11 修正）
+------------------------------------------------------
+本信号曾长期「恒定返回 missing」，原因写的是「匿名态未填充该字段」。
+**那个结论是错的。**
 
-所以本信号目前**恒定返回 missing**，title 里写清楚原因。
-保留它的价值：等换数据源（登录态/评论分页）后自动生效，
-不需要改任何调用方 —— 注册表已经把它挂上了。
+SSR 的评论对象里有**两个**点赞字段：
+
+======================  ==========================================
+``likeCount``           内部计数器，实测 **543/543 恒为 0**
+``likeViewCount``       **展示给用户看的点赞数**，有真值
+                        （实测 310 / 56 / 24 / 29 / 32 …）
+======================  ==========================================
+
+采集层早先只取了 ``likeCount``，于是下游看到「全 0」，
+误判成「平台不填充」。修法是把 ``likeViewCount`` 也采下来
+（``CommentRow.like_view_count``），本信号优先读它。
+
+旧数据（2026-10-11 之前采的）没有 ``like_view_count``，
+仍然返回 missing —— 但原因变成「这篇没采到点赞」，
+而不是「平台不给」。**重抓一次就自动生效**，不需要改任何调用方。
+
+阈值
+----
+非零率 < 0.2 起算风险，0 满格。0.2 的依据：真实讨论帖里
+「被赞过的评论」占比通常在 0.3~0.6（长评/神评容易被顶），
+全 0 或极低才是异常。
 """
 from __future__ import annotations
 
@@ -23,9 +41,11 @@ from .base import SignalContext, signal
 
 NAME = "comment_like_rate"
 
-#: 全 0 时判定为「字段未填充」而不是「真的没人赞」。
-#: 判据：0 条非零 AND 评论数 >= 5（5 条以上评论全 0 赞不符合真实分布）。
+#: 样本下限：评论太少时「非零率」的粒度太粗（3 条里 0 条赞很常见）。
 _MIN_COMMENTS_FOR_JUDGEMENT = 5
+
+#: 非零率低于这个值开始计风险（真实讨论帖通常 0.3~0.6）。
+_RATE_LO = 0.2
 
 
 @signal(NAME, group="comments")
@@ -36,24 +56,24 @@ def compute(record: NoteRecord, *, ctx: SignalContext) -> SignalResult:
         return SignalResult.missing_(NAME, f"评论 {n} 条 < "
                                           f"{_MIN_COMMENTS_FOR_JUDGEMENT}")
 
-    nonzero = 0
-    for c in comments:
-        s = (c.like_count or "").strip()
-        if s and s not in ("0", "-", ""):
-            nonzero += 1
-
-    if nonzero == 0:
-        # 关键判断：全 0 更可能是采集侧限制，不是内容特征。
-        # 拿它当「刷评」证据会误伤所有帖。
+    # 先问「采到了没有」—— 没采到和「没人赞」是两回事，
+    # 混同会误伤所有帖（这就是当初恒 missing 的教训）。
+    if not record.has_view_likes:
         return SignalResult.missing_(
             NAME,
-            f"{n} 条评论点赞全为 0 —— 疑似匿名态未填充该字段，"
+            f"{n} 条评论都没有 like_view_count —— 本篇未采集展示点赞数"
+            "（2026-10-11 前的旧数据格式）。重抓一次即可生效，"
             "不作为刷评证据",
             n=n,
         )
 
-    rate = safe_div(float(nonzero), float(n))
-    # 越高越正常 → 风险取反：非零率 0.2 以下算可疑
-    risk = max(0.0, 1.0 - rate / 0.2) if rate < 0.2 else 0.0
+    have = [c for c in comments if c.has_view_like]
+    nonzero = sum(1 for c in have
+                  if (c.like_view_count or "").strip() not in ("0", "-", ""))
+    rate = safe_div(float(nonzero), float(len(have)))
+
+    # 越高越正常 → 风险取反：非零率低于 _RATE_LO 时线性上升
+    risk = max(0.0, 1.0 - rate / _RATE_LO) if rate < _RATE_LO else 0.0
     return SignalResult.ok(NAME, min(risk, 1.0), n=n,
-                           nonzero=nonzero, rate=round(rate, 3))
+                           nonzero=nonzero, rate=round(rate, 3),
+                           with_data=len(have))

@@ -217,7 +217,6 @@ graph LR
     E --> I[report]
     E -.per_note.-> J["out/&lt;note_id&gt;/<br/>scores.json + report.md"]
 ```
-
 数据流**单向**：`loader → signals/semantic → fuse → store`。
 每层输入输出都是 `dataclass`，没有隐式共享状态。
 
@@ -360,14 +359,16 @@ NoteRecord
 | `text_exclaim_density` | 感叹号密度 | 越高越可疑 | 0.714 |
 | `like_comment_ratio` | 赞评比 | 越高越可疑 | 0.714 |
 | `cta_lexicon` | 引导词词表（私信/优惠券…） | 密度越高越可疑 | 0.697 |
+| `publish_burst` | 发布后 1h 内评论占比 | 占比越高越可疑 | 0.691 |
 | `structure_markers` | 模板排版（✅1️⃣💡） | 标记越多越可疑 | 0.680 |
 | `tag_count` | 话题标签个数（SEO 堆砌） | 越多越可疑 | 0.643 |
 | `sub_reply_ratio` | 楼中楼占比 | 越低越可疑 | 0.603 |
+| `brand_mention_ratio` | 评论念产品名的比例 | 越高越可疑 | 0.594 |
 | `ip_top1_ratio` | IP top1 占比 | 越高越可疑 | 0.511 |
 | `author_reply_ratio` | 作者自评占比 | 越高越可疑 | 0.495 |
 | `ip_entropy` | IP 分布熵 | 越低越可疑 | 0.460 |
 | `text_length` | 正文长度 | 两个极端可疑 | 0.424 |
-| `comment_like_rate` | 评论点赞非零率 | 越低越可疑 | 全缺失 |
+| `comment_like_rate` | 评论点赞非零率 | 越低越可疑 | 待重抓激活 |
 | `nickname_dup_rate` | 昵称重复率 | **已禁用** | 0.259 反向 |
 
 > AUC = 「随机抽一对（高风险, 非高风险），高风险那篇的值更大的概率」
@@ -463,10 +464,10 @@ Rule(name="ad_gate",
 | 限制 | 影响 |
 |---|---|
 | 一级评论**只有 5 条** | 楼层数被锁在 5；总条数可以远超（楼中楼能带出几十上百条） |
-| 评论 `like_count` **恒为 0** | `comment_like_rate` 恒 missing —— 主动返回 missing 带原因，不拿它当刷评证据 |
+| 评论 `like_count` **恒为 0** | 内部计数器。真实点赞在 `like_view_count`（2026-10-11 已补采） |
 | 帖子 IP 属地**拿不到** | 试过 13 个候选键名，note 区 0 命中；评论 IP 可得 |
 | 评论翻页返回 461 | 第 6 条一级评论起拿不到 |
-| `tags` 有重复项 + 混入假标签「笔记」 | 读之前必须清洗 |
+| `tags` 有重复项 + 混入假标签「笔记」 | 读之前必须清洗；实测 7/43 篇只剩假标签（解析失败） |
 
 **方法限制**：
 
@@ -489,7 +490,7 @@ Rule(name="ad_gate",
 ## 开发
 
 ```powershell
-# 265 个用例（jev2 226 + xhs-cli 39）
+# 285 个用例（jev2 236 + xhs-cli 49）
 python -m pytest jev2/tests xhs-cli/tests -q
 ```
 

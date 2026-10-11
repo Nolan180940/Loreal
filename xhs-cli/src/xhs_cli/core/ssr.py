@@ -260,6 +260,19 @@ def parse_comments(html: str) -> list[dict[str, Any]]:
              for m in re.finditer(r'"likeCount":([^,]+)', scope)]
     times = [(m.start(), m.group(1))
              for m in re.finditer(r'"time":(\d+)', scope)]
+    # ---- 2026-10-11 新增：与快路径保持字段一致 ----
+    # 只加**模式无歧义**的；``id`` 不在这里加（``"id":"..."`` 在
+    # user/note 里到处出现，按最近距离配对必然错配），
+    # 下游拿不到时是空串，不会静默拿到**别人的** id。
+    views = [(m.start(), m.group(1).strip('"'))
+             for m in re.finditer(r'"likeViewCount":([^,]+)', scope)]
+    subs = [(m.start(), m.group(1))
+            for m in re.finditer(r'"subCommentCount":(\d+)', scope)]
+    statuses = [(m.start(), m.group(1))
+                for m in re.finditer(r'"status":(-?\d+)', scope)]
+    targets = [(m.start(), m.group(1))
+               for m in re.finditer(
+                   r'"targetComment":\{"id":"([0-9a-f]{24})"', scope)]
 
     def attach(pairs):
         """把若干 (位置, 值) 各配给最近的 content，返回 {content_idx: 值}。"""
@@ -279,6 +292,10 @@ def parse_comments(html: str) -> list[dict[str, Any]]:
     ip_map = attach(ips)
     like_map = attach(likes)
     time_map = attach(times)
+    view_map = attach(views)
+    sub_map = attach(subs)
+    status_map = attach(statuses)
+    target_map = attach(targets)
 
     rows: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
@@ -300,6 +317,9 @@ def parse_comments(html: str) -> list[dict[str, Any]]:
         seen.add(key)
 
         t = time_map.get(idx, "")
+        v = view_map.get(idx, "")
+        s = sub_map.get(idx, "")
+        st = status_map.get(idx, "")
         rows.append({
             "user_id": uid,
             "nickname": nick_map.get(idx, ""),
@@ -309,6 +329,13 @@ def parse_comments(html: str) -> list[dict[str, Any]]:
             "time": int(t) if t.isdigit() else 0,
             "is_author": is_author,
             "_is_reply": is_reply,
+            # 与快路径字段一致（id 拿不到就是空串，见上面注释）
+            "id": "",
+            "like_view_count": v or "0",
+            "sub_comment_count": int(s) if s.isdigit() else 0,
+            "status": int(st) if st.lstrip("-").isdigit() else 0,
+            "_parent_id": target_map.get(idx, ""),
+            "target_id": target_map.get(idx, ""),
         })
 
     return rows
