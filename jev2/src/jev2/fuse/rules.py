@@ -60,6 +60,60 @@ class Rule:
     note: str = ""
 
 
+# --------------------------------------------------------------- 信号规则
+#
+# 2026-10-12 新增：让统计信号**各自**参与计分（不再只压成 l2_mean）。
+#
+# 背景：此前 19 个信号对总分**零影响** —— 它们只以 l2_mean 进 context，
+# 而 weights 表没有这个键，weighted() 只对权重表里的键计权。
+# 实测把 l2_mean 置 0/1/不提供，total 恒为 0.7960。
+#
+# 为什么声明为 ``flag`` 而不是 ``contribute``
+# ------------------------------------------
+# 引擎的 ``_resolve_action`` 会把「声明 flag 但 weights 里有同名键」的规则
+# **自动提升**为 contribute。所以：
+#
+#   启用某信号 = config.fuse.weights 加一个键（零代码）
+#   回滚某信号 = 删那个键（零代码）
+#
+# 这与 ``l2_stats`` 的既有机制完全一致，不引入新概念。
+#
+# 为什么只有 12 个（另外 6 个 AUC < 0.60）
+# ---------------------------------------
+# 权重表按**实测 AUC 先验**分配比例，只留「总权重」一个自由度给扫描 ——
+# 12 个自由参数在 40 篇样本上必然过拟合（见 docs/SIGNAL_FUSE_PLAN.md D3）。
+# 无区分度证据的 6 个继续 flag 观测，证据足了再加键即可。
+
+#: 计分信号的权重先验：``{信号名: (权重, 依据)}``。
+#:
+#: 权重按 AUC 排序分配、长度簇内递减（三者是同一组评论长度的三个视角，
+#: 等权等于把一个证据数三遍）。总和 0.20 = 语义 1.00 的 20% ——
+#: 离线扫描最优带是 0.15~0.25，取中点。详见 docs/SIGNAL_FUSE_PLAN.md §3。
+SCORING_SIGNALS: dict[str, tuple[float, str]] = {
+    "comment_len_mean":     (0.0333, "AUC 0.809 · 长度簇代表"),
+    "low_effort_ratio":     (0.0267, "AUC 0.742"),
+    "comment_len_sd":       (0.0200, "AUC 0.785 · 长度簇第二视角"),
+    "comment_time_span":    (0.0200, "AUC 0.737"),
+    "text_exclaim_density": (0.0167, "AUC 0.714"),
+    "like_comment_ratio":   (0.0167, "AUC 0.714"),
+    "comment_len_iqr":      (0.0133, "AUC 0.761 · 长度簇第三视角"),
+    "cta_lexicon":          (0.0133, "AUC 0.697"),
+    "publish_burst":        (0.0133, "AUC 0.691"),
+    "structure_markers":    (0.0100, "AUC 0.680"),
+    "tag_count":            (0.0100, "AUC 0.643"),
+    "sub_reply_ratio":      (0.0067, "AUC 0.603"),
+}
+
+#: 12 条信号规则。规则名带 ``sig_`` 前缀 —— trace 里一眼能区分
+#: 「这条是模型说的」还是「这条是本地算的」。
+SIGNAL_RULES: tuple[Rule, ...] = tuple(
+    Rule(name=f"sig_{name}", action="flag", formula=F.identity,
+         inputs=(name,), weight=w,
+         note=f"{note}（声明 flag；weights 有键时自动转 contribute）")
+    for name, (w, note) in SCORING_SIGNALS.items()
+)
+
+
 # --------------------------------------------------------------- 默认规则集
 
 DEFAULT_RULES: tuple[Rule, ...] = (
@@ -114,11 +168,17 @@ DEFAULT_RULES: tuple[Rule, ...] = (
         ),
     ),
 
-    # ── L2 统计信号（第一版只 flag，不进权重）────────────────────
+    # ── 统计信号：12 条各自计分的规则（见上方 SIGNAL_RULES）────
     #
-    # 为什么不进权重：40 篇样本 + 没有 ground truth，任何权重都是过拟合。
-    # 想启用就在 config.fuse.weights 里加 "l2_mean" 键 —— 引擎会自动
-    # 把下面这条从 flag 提升为 contribute（见 engine._resolve_action）。
+    # 声明为 flag，config.fuse.weights 出现同名键时自动转 contribute。
+    *SIGNAL_RULES,
+
+    # ── L2 聚合（保留为观测通道）────────────────────────────────
+    #
+    # 有了上面 12 条独立规则后，这个聚合值**不再承担计分职责** ——
+    # 它保留下来是因为：① 报告里一个标量比 12 个数字好读；
+    # ② 想快速试验「整体信号强度」时加一个 l2_mean 键即可。
+    # 默认仍是 flag。
     Rule(
         name="l2_stats",
         action="flag",

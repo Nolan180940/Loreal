@@ -68,7 +68,37 @@ low = 0.30
 # 各维度权重。
 # ⚠️ 初始值继承 legacy-jev（已验证二值一致率 95.8%），
 #    不是拍脑袋定的 —— 没有 ground truth 之前不要随手改。
-weights = { has_risk = 0.35, exaggeration = 0.30, is_ad = 0.25, is_cta = 0.10 }
+#
+# ── 2026-10-12 新增：12 个统计信号各自计分（总权重 0.20）──
+# 语义 1.00 : 信号 0.20 ≈ 83:17。依据（docs/SIGNAL_FUSE_PLAN.md）：
+#   40 篇离线扫描，信号总权重 0 → 0.20 让 kappa 0.654→0.776、
+#   三档一致 80%→87.5%，而二值一致保持 100%、零漏判；
+#   给到 0.40 就开始稀释（gold=high 被拉成 medium）。
+# 权重**比例按实测 AUC 先验**分配（只留总权重一个自由度给扫描）——
+# 12 个自由参数在 40 篇上必然过拟合。
+# 规则侧是 flag，这里出现键才自动转 contribute（engine._resolve_action）：
+#   回滚 = 删掉这 12 个键。
+# ⚠️ 照例声明：这是在 40 篇自评基准上选的，「在考卷上改答案」，候选值。
+#
+# 注：TOML 的 inline table **不能跨行**，所以这里用点号逐个赋值
+# （等价于一张表，tomllib 读出来是同一个 dict）。
+weights.has_risk = 0.35
+weights.exaggeration = 0.30
+weights.is_ad = 0.25
+weights.is_cta = 0.10
+# ---- 12 个计分信号（总 0.20）----
+weights.comment_len_mean = 0.0333
+weights.low_effort_ratio = 0.0267
+weights.comment_len_sd = 0.0200
+weights.comment_time_span = 0.0200
+weights.text_exclaim_density = 0.0167
+weights.like_comment_ratio = 0.0167
+weights.comment_len_iqr = 0.0133
+weights.cta_lexicon = 0.0133
+weights.publish_burst = 0.0133
+weights.structure_markers = 0.0100
+weights.tag_count = 0.0100
+weights.sub_reply_ratio = 0.0067
 
 # 一票否决：命中直接判 HIGH。
 # legacy 实测：is_ad>=0.85 把高风险召回从 40% 提到 100%。

@@ -201,11 +201,19 @@ def test_note_detail_renders_trace_rows() -> None:
 
 
 def test_note_detail_warns_when_semantic_not_run() -> None:
-    """未跑语义层要和「语义层失败」分开报 —— 原因不同，处置也不同。"""
+    """未跑语义层要和「语义层失败」分开报 —— 原因不同，处置也不同。
+
+    2026-10-12 改文案：信号现在会计分，所以理由从「权重全来自语义」
+    改为「缺主证，只剩佐证」。这条钉住新文案的**两个要点**：
+    说清分数只由信号得出，且仍明确不构成判定。
+    """
     md = render_note_detail(_row(total=0.0, level=Level.LOW, model=""),
                             title="x")
     assert "未跑语义层" in md
-    assert "不构成判定结果" in md
+    assert "只由统计信号得出" in md
+    assert "不构成判定" in md
+    # 不能说「权重全部来自语义维度」了 —— 那是改造前的说法
+    assert "融合权重**全部**来自语义维度" not in md
     assert "语义层失败" not in md          # 不是失败，是没跑
     assert "未跑语义层" not in render_note_detail(_row(), title="x")
 

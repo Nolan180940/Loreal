@@ -150,9 +150,8 @@ def render_note_console(row: dict[str, Any]) -> str:
     if row.get("semantic_ok") is False:
         parts.append("⚠️ 语义层失败")
     elif not row.get("model"):
-        # 融合权重全部来自语义维度，所以「没跑语义」= 没判定。
-        # 不提示的话 0.000 会被读成「内容干净」。
-        parts.append("⚠️ 未跑语义层（分数不构成判定）")
+        # 统计信号现在会计分（sig_* 规则），但缺主证 —— 提示理由要改。
+        parts.append("⚠️ 未跑语义层（只剩佐证，不构成判定）")
     return " | ".join(parts)
 
 
@@ -315,9 +314,10 @@ def render_note_detail(row: dict[str, Any], *,
         w("")
         w("> ⚠️ **未跑语义层**（`--no-semantic`）")
         w(">")
-        w("> 融合权重**全部**来自语义维度（`has_risk` / `exaggeration` /"
-          " `is_ad` / `is_cta`），")
-        w("> 所以本篇分数**不构成判定结果** —— 它只能用来核对统计信号。")
+        w("> 本分数**只由统计信号得出**（`sig_*` 规则）——")
+        w("> 统计信号是**佐证**（行为痕迹），语义维度才是**主证**"
+          "（内容判断）。")
+        w("> 缺主证的结果不构成判定，只能用来核对信号层。")
     for n in (row.get("notes") or []):
         w("")
         w(f"> {n}")

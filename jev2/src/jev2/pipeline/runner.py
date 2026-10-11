@@ -153,8 +153,20 @@ class Pipeline:
                 # 模型挂了不伪装成「干净」—— semantic_ok=False 会进产物
                 self.log(f"  [!] 语义层失败: {sem_err[:80]}")
 
-        # 组装 context：语义维度 + L2 聚合值
+        # 组装 context：语义维度 + **全部非缺失信号值** + L2 聚合
+        #
+        # 为什么把每个信号都放进去（而不只是 l2_mean）：
+        # 规则集里的信号规则是**声明为 flag** 的，只有当
+        # config.fuse.weights 出现同名键时才被自动提升为 contribute
+        # （见 engine._resolve_action）。ctx 里先备好值，
+        # 「给某个信号加权重」就成了一行配置的事，零代码改动。
+        #
+        # 代价：ctx 变大（约 18 个键）。引擎按规则 inputs 取值，
+        # 不认识的键不会被遍历到，所以没有性能问题。
         ctx: dict[str, float] = {d.name: d.value for d in dims}
+        for name, r in sig.items():
+            if not r.missing and r.value is not None:
+                ctx[name] = r.value
         l2 = self._aggregate_l2(sig)
         if l2 is not None:
             ctx["l2_mean"] = l2

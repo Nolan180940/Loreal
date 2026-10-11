@@ -101,6 +101,30 @@ def test_weighted_ignores_unweighted_and_missing() -> None:
     assert F.weighted({"a": 1.0}, {"a": 1.0, "absent": 5.0}) == 1.0
 
 
+def test_weighted_missing_shrinks_denominator() -> None:
+    """缺失维度**会从分母里扣** —— 剩余维度按比例放大（2026-10-12 实测）。
+
+    回归：docstring 曾写「不从分母里扣」，与代码相反。
+    这条钉住真实行为：4 维等权全 1.0 → 1.0；去掉一维后**仍是 1.0**
+    （而非 0.75）。
+
+    为什么这条重要：信号层缺失很常见（评论少 → 信号算不出），
+    如果行为是「分母不扣」，缺失会让总分**偏低**，等于替平台说好话。
+    实际行为是「扣掉」→ 缺失不影响剩余项的权重比例。
+    """
+    w = {"a": 0.25, "b": 0.25, "c": 0.25, "d": 0.25}
+    full = F.weighted({"a": 1.0, "b": 1.0, "c": 1.0, "d": 1.0}, w)
+    drop = F.weighted({"a": 1.0, "b": 1.0, "d": 1.0}, w)      # c 缺失
+    assert full == pytest.approx(1.0)
+    assert drop == pytest.approx(1.0), (
+        "分母应被扣掉（剩余按比例放大）；若这里是 0.75 说明行为变了")
+    # 值不同的情形：缺失项若是 0，扣分母反而让总分**升高**
+    mixed = F.weighted({"a": 1.0, "b": 1.0}, w)                # 只有 a,b
+    assert mixed == pytest.approx(1.0)
+    partial = F.weighted({"a": 1.0, "b": 0.0}, w)
+    assert partial == pytest.approx(0.5)                       # 2 项各半
+
+
 def test_weighted_no_weights_is_zero() -> None:
     assert F.weighted({"a": 1.0}, {}) == 0.0
 
@@ -232,6 +256,89 @@ def test_rule_set_switchable_without_engine_change() -> None:
     # 0.78 在 default 下低于 0.85 不 veto，在 strict 下高于 0.75 会 veto
     assert default.vetoed_by == ""
     assert strict.vetoed_by == "ad_gate"
+
+
+# --------------------------------------- 统计信号独立计分（2026-10-12 新增）
+#
+# 背景：此前 19 个信号对总分**零影响**（只以 l2_mean 进 context，
+# 而 weights 表没这个键）。现在 12 个信号各自成规则、各自计分。
+
+def test_signal_rules_exist_and_are_flag_by_default() -> None:
+    """12 条信号规则必须在 default 规则集里，且默认是 flag。"""
+    from jev2.fuse.rules import SCORING_SIGNALS
+
+    assert len(SCORING_SIGNALS) == 12
+    rules = {r.name: r for r in get_rules("default")}
+    for name in SCORING_SIGNALS:
+        r = rules.get(f"sig_{name}")
+        assert r is not None, f"缺规则 sig_{name}"
+        assert r.action == "flag", f"{name} 应声明为 flag（靠权重键提升）"
+        assert r.inputs == (name,)
+    # 默认引擎下全部是 flag（没给权重键）
+    eng = FuseEngine()
+    for name in SCORING_SIGNALS:
+        eff = next(d["effective"] for d in eng.describe()
+                   if d["name"] == f"sig_{name}")
+        assert eff == "flag", f"{name} 默认不该计分"
+
+
+def test_signal_promoted_by_weight_key() -> None:
+    """给信号加权重键 → 自动转 contribute。回滚 = 删键。"""
+    ctx = dict(CTX_CLEAN, comment_len_mean=0.9)
+    base = FuseEngine().evaluate("n" * 24, ctx)
+    assert base.trace  # 有 trace
+    sig_t = next(t for t in base.trace if t.rule == "sig_comment_len_mean")
+    assert sig_t.action == "flag"
+
+    eng = FuseEngine(EngineConfig(
+        weights={"has_risk": 1.0, "comment_len_mean": 0.5}))
+    v = eng.evaluate("n" * 24, ctx)
+    sig_t = next(t for t in v.trace if t.rule == "sig_comment_len_mean")
+    assert sig_t.action == "contribute"
+    assert sig_t.contribution == pytest.approx(0.9 * 0.5)
+    assert v.total > base.total
+
+
+def test_signal_missing_is_skipped_not_zero() -> None:
+    """信号缺失 → 规则 skipped（不是当 0 算）。"""
+    eng = FuseEngine(EngineConfig(weights={"has_risk": 1.0,
+                                           "comment_len_mean": 0.5}))
+    # ctx 里没有 comment_len_mean
+    v = eng.evaluate("n" * 24, CTX_CLEAN)
+    t = next(x for x in v.trace if x.rule == "sig_comment_len_mean")
+    assert t.skipped is True
+    assert "缺失" in t.reason
+    assert "sig_comment_len_mean" in " ".join(v.notes)
+
+
+def test_signal_weight_sum_is_documented_value() -> None:
+    """12 个信号权重和 = 0.20（docs/SIGNAL_FUSE_PLAN.md §3）。
+
+    改权重比例必须同步改文档 —— 这条防止两者漂移。
+    """
+    from jev2.fuse.rules import SCORING_SIGNALS
+
+    total = sum(w for w, _ in SCORING_SIGNALS.values())
+    assert total == pytest.approx(0.20, abs=1e-9)
+
+
+def test_config_weights_match_scoring_signals() -> None:
+    """config.toml 的 12 个信号权重必须与 SCORING_SIGNALS 一致。
+
+    两处各写一遍是必要的（一个是规则先验、一个是生效配置），
+    但漂移会让「扫描选定的权重」和「实际生效的权重」不一致。
+    """
+    from jev2.config import load_config
+    from jev2.fuse.rules import SCORING_SIGNALS
+
+    cfg = load_config()
+    sem = {"has_risk", "exaggeration", "is_ad", "is_cta"}
+    sig_keys = {k: v for k, v in cfg.fuse.weights.items() if k not in sem}
+    assert set(sig_keys) == set(SCORING_SIGNALS), (
+        f"config 与规则先验的信号集不一致："
+        f"{set(sig_keys) ^ set(SCORING_SIGNALS)}")
+    for name, (w, _) in SCORING_SIGNALS.items():
+        assert sig_keys[name] == pytest.approx(w), f"{name} 权重不一致"
 
 
 def test_semantic_only_ignores_l2() -> None:
