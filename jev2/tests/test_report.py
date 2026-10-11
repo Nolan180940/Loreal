@@ -31,8 +31,8 @@ from jev2.core.types import (CommentRow, DimScore, Level, NoteRecord,  # noqa: E
                              RuleTrace, SignalResult, Verdict)
 from jev2.pipeline.runner import JudgeResult, Pipeline               # noqa: E402
 from jev2.pipeline.store import RunMeta                              # noqa: E402
-from jev2.report import (render_note_console, render_note_detail,     # noqa: E402
-                         write_note_bundle)
+from jev2.report import (_verify_label, render_note_console,          # noqa: E402
+                         render_note_detail, write_note_bundle)
 
 NID = "6a7ebdfe00000000080122b8"
 OTHER = "0f3c1a2b00000000010203ff"
@@ -40,7 +40,8 @@ OTHER = "0f3c1a2b00000000010203ff"
 
 # ------------------------------------------------------------------- 造数据
 
-def _note(nid: str = NID, title: str = "后悔没早知道") -> NoteRecord:
+def _note(nid: str = NID, title: str = "后悔没早知道",
+          verify_type: int = -1) -> NoteRecord:
     return NoteRecord(
         note_id=nid,
         title=title,
@@ -49,6 +50,7 @@ def _note(nid: str = NID, title: str = "后悔没早知道") -> NoteRecord:
         liked=978,
         comment_count=94,
         images=("01.jpg",),
+        author_verify_type=verify_type,
         comments=(
             CommentRow(cid="c1", content="好用", nickname="a",
                        ip_location="湖北", like_count="0", time_ms=1,
@@ -63,10 +65,12 @@ def _note(nid: str = NID, title: str = "后悔没早知道") -> NoteRecord:
 def _row(nid: str = NID, *, total: float = 0.7645,
          level: Level = Level.HIGH, vetoed: str = "",
          semantic_fail: bool = False,
-         model: str = "jev-1.13") -> dict:
+         model: str = "jev-1.13",
+         verify_type: int = -1) -> dict:
     """直接产出 scores.jsonl 形态的 row。
 
     ``model=""`` 模拟 ``--no-semantic``（没跑语义层）。
+    ``verify_type`` 传 2 模拟品牌官方号发帖。
     """
     v = Verdict(
         note_id=nid, total=total, level=level,
@@ -92,7 +96,8 @@ def _row(nid: str = NID, *, total: float = 0.7645,
                           rule_set="default")
     return JudgeResult(note_id=nid, verdict=v,
                        semantic_ok=not semantic_fail,
-                       elapsed_ms=866).to_row(meta=meta, note=_note(nid))
+                       elapsed_ms=866).to_row(
+                           meta=meta, note=_note(nid, verify_type=verify_type))
 
 
 # ------------------------------------------------------ render_note_detail
@@ -113,6 +118,55 @@ def test_note_detail_only_mentions_this_note() -> None:
     assert OTHER not in md
     # 只能出现一次自己的 id（标题行）
     assert md.count(NID) == 1
+
+
+# ------------------------------------------------- 作者认证（redOfficialVerifyType）
+
+def test_verify_label_mapping() -> None:
+    """认证取值 → 人话。**-1 是「未采集」，不是「无认证」**。
+
+    两者混同会让旧数据看起来像「确认无认证」，而它其实只是没采。
+    """
+    assert "品牌官方" in _verify_label(2)
+    assert _verify_label(0) == "无"
+    assert "未采集" in _verify_label(-1)
+    # 容错：缺字段/脏值不能崩，也不能误报成「无」
+    assert "未采集" in _verify_label(None)
+    assert "未采集" in _verify_label("abc")
+    assert "未知" in _verify_label(99)          # 未实测的取值不编语义
+
+
+def test_note_detail_shows_verify_type() -> None:
+    """报告要显示认证状态 —— 旧数据不能显示成「无」。"""
+    assert "| 作者认证 | 无 |" in render_note_detail(_row(verify_type=0),
+                                                     title="x")
+    assert "未采集" in render_note_detail(_row(), title="x")   # 默认 -1
+
+
+def test_note_detail_warns_on_brand_author() -> None:
+    """品牌官方号发帖要提示 —— 它是**上下文**，不是风险分。"""
+    md = render_note_detail(_row(verify_type=2), title="x")
+    assert "品牌官方号" in md
+    # 必须说清它不直接推高分数，否则读的人会以为这是风险来源
+    assert "上下文而非风险分" in md
+    # 非品牌官方不该出现这个提示
+    assert "品牌官方号" not in render_note_detail(_row(verify_type=0),
+                                                  title="x")
+
+
+def test_row_carries_verify_fields() -> None:
+    """产物里要同时有原始值和布尔值。
+
+    原始值供程序读；布尔值让产物自解释 —— 0/2 的映射在代码里，
+    只写原始值的话看产物的人不知道 "2" 是什么意思。
+    """
+    d = _row(verify_type=2)
+    assert d["note"]["author_verify_type"] == 2
+    assert d["note"]["author_is_brand"] is True
+    d0 = _row(verify_type=0)
+    assert d0["note"]["author_is_brand"] is False
+    # 旧数据：未采集 → None（不是 False！）
+    assert _row()["note"]["author_is_brand"] is None
 
 
 def test_note_detail_lists_missing_signal_with_reason() -> None:

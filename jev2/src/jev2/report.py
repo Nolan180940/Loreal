@@ -29,6 +29,26 @@ def _num(x: Any, default: float = 0.0) -> float:
         return default
 
 
+#: ``redOfficialVerifyType`` 的取值 → 人话。
+#: 实测：0 = 无认证（卖家帖/KOL/普通分享都是 0），2 = 品牌官方。
+#: 1 大概率是个人黄 V，未实测到 —— 不下结论，只标「其他」。
+#: -1 是本项目的约定值，表示**旧数据未采集**（不是「无认证」）。
+_VERIFY_LABELS = {
+    -1: "未采集（旧数据）",
+    0: "无",
+    1: "其他认证",
+    2: "**品牌官方**",
+}
+
+
+def _verify_label(v: Any) -> str:
+    """作者认证类型的可读标签。"""
+    try:
+        return _VERIFY_LABELS.get(int(v), f"未知({v})")
+    except (TypeError, ValueError):
+        return "未采集（旧数据）"
+
+
 def _quantile(xs: list[float], q: float) -> float:
     if not xs:
         return 0.0
@@ -311,11 +331,21 @@ def render_note_detail(row: dict[str, Any], *,
         w("|---|---|")
         w(f"| 标题 | {note.get('title') or '（空）'} |")
         w(f"| 作者 | {note.get('author') or '（空）'} |")
+        w(f"| 作者认证 | {_verify_label(note.get('author_verify_type'))} |")
         w(f"| 点赞 | {note.get('liked')} |")
         w(f"| 评论声明 | {note.get('comment_count')} |")
         w(f"| 评论实得 | {note.get('comments_got')} |")
         w(f"| 图片 | {note.get('images')} 张 |")
         w("")
+        if note.get("author_is_brand") is True:
+            # 不是风险分，是**上下文**：品牌官方号发的帖，
+            # 评论区通常是品牌在运营（与自然分享帖的评论结构不可比）。
+            w("> ⚠️ **作者是品牌官方号**（`redOfficialVerifyType=2`）。")
+            w(">")
+            w("> 这是**上下文而非风险分** —— 官方号也可能发不引导购买的科普。")
+            w("> 但它解释了评论区为何可能是品牌运营的，")
+            w("> 所以「刷评类」统计信号在这类帖上要谨慎解读。")
+            w("")
 
     # ---- 语义维度 ----
     dims = row.get("dimensions") or {}

@@ -74,6 +74,12 @@ class JudgeResult:
             d["note"] = {
                 "title": note.title,
                 "author": note.author,
+                # 作者认证：0=无 · 2=品牌官方 · -1=未采集
+                # 两个都写 —— 原始值供程序读，布尔值让产物自解释
+                # （0/2 的映射规则在代码里，不写布尔值的话
+                #   看产物的人不知道 "2" 是什么意思）
+                "author_verify_type": note.author_verify_type,
+                "author_is_brand": note.author_is_brand,
                 "liked": note.liked,
                 "comment_count": note.comment_count,
                 "comments_got": len(note.comments),

@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "run_id": "20261011-204035-21df8e",
+  "run_id": "20261011-210820-162af8",
   "config_hash": "efe851c89c90",
   "model": "jev-1.13",
   "rule_set": "default",
-  "scored_at": "2026-10-11T20:40:36",
+  "scored_at": "2026-10-11T21:08:21",
   "note_id": "69d8c8a6000000002301d991",
   "total": 1.0,
   "level": "high",
@@ -20,7 +20,7 @@
     },
     "has_risk": {
       "name": "has_risk",
-      "value": 0.34,
+      "value": 0.33,
       "confidence": null,
       "qtype": "noul",
       "detail": {}
@@ -47,7 +47,7 @@
     },
     "is_cta": {
       "name": "is_cta",
-      "value": 0.71,
+      "value": 0.68,
       "confidence": null,
       "qtype": "noul",
       "detail": {}
@@ -282,9 +282,9 @@
     {
       "rule": "risk",
       "action": "contribute",
-      "value": 0.34,
+      "value": 0.33,
       "weight": 0.35,
-      "contribution": 0.119,
+      "contribution": 0.1155,
       "skipped": false,
       "reason": ""
     },
@@ -309,9 +309,9 @@
     {
       "rule": "is_cta",
       "action": "contribute",
-      "value": 0.71,
+      "value": 0.68,
       "weight": 0.1,
-      "contribution": 0.071,
+      "contribution": 0.068,
       "skipped": false,
       "reason": ""
     },
@@ -329,10 +329,12 @@
     "一票否决命中：ad_gate（is_ad ≥ 0.85 一票否决。legacy-jev 实测：加权平均会把纯广告稀释（官方活动贴 is_ad=0.96 被拉到加权 0.642 → 误判中风险），加这道门后高风险召回 40% → 100%。）"
   ],
   "semantic_ok": true,
-  "elapsed_ms": 906,
+  "elapsed_ms": 892,
   "note": {
     "title": "上海微调升级美貌，这就是原生高智脸的魅力~",
     "author": "张玲｜Yestar",
+    "author_verify_type": 0,
+    "author_is_brand": false,
     "liked": 1001,
     "comment_count": 100,
     "comments_got": 13,
