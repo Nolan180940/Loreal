@@ -89,8 +89,21 @@ class ResultStore:
                 bad.append(f"第 {i} 行: {exc}")
         return rows, bad
 
-    def existing_ids(self) -> set[str]:
-        return {r["note_id"] for r in self.load() if r.get("note_id")}
+    def existing_ids(self, *,
+                     retry_semantic_failed: bool = True) -> set[str]:
+        """已有结果的 ``note_id``。
+
+        ``semantic_ok=false`` 的篇**默认不算「已有」**。
+        那些行是模型调用失败留下的（只含统计信号的 0 分），
+        跳过它们等于把一次上游 451 故障永久固化进结果里 ——
+        重跑时本来就该重试。
+
+        ``retry_semantic_failed=False`` 用于「我就想跳过所有行」的场合。
+        """
+        return {r["note_id"] for r in self.load()
+                if r.get("note_id")
+                and (not retry_semantic_failed
+                     or r.get("semantic_ok") is not False)}
 
     def iter_rows(self) -> Iterator[dict[str, Any]]:
         """流式读（大文件用）。"""

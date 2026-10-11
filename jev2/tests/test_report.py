@@ -388,3 +388,39 @@ def test_pipeline_no_semantic_never_aborts(tmp_path: Path) -> None:
     assert stats["aborted"] == ""
     assert stats["semantic_failed"] == 0
     assert stats["ok"] == 5
+
+
+# ------------------------------------------- 语义失败的篇不该被永久跳过
+
+def test_semantic_failed_rows_are_not_treated_as_done(tmp_path: Path) -> None:
+    """一次上游故障不该被固化成「已判过」。
+
+    ``semantic_ok=false`` 的行是模型调用失败留下的 0 分。如果重跑时
+    把它当「已有结果」跳过，那这 40 篇就永远只有统计分了 ——
+    而 ``--force`` 是整批重跑（重新花钱），不该是唯一出路。
+    """
+    from jev2.pipeline.store import ResultStore
+
+    store = ResultStore(tmp_path)
+    store.upsert_many([_row("a" * 24, semantic_fail=True),
+                       _row("b" * 24)])
+    assert store.existing_ids() == {"b" * 24}
+    assert store.existing_ids(retry_semantic_failed=False) == {"a" * 24,
+                                                              "b" * 24}
+
+
+def test_semantic_failed_rows_get_retried_end_to_end(tmp_path: Path) -> None:
+    """跑一遍：上次失败的那篇会被重判，成功那篇被跳过。"""
+    from jev2.pipeline.store import ResultStore
+
+    store = ResultStore(tmp_path / "out")
+    store.upsert_many([_row("a" * 24, semantic_fail=True),
+                       _row("b" * 24)])
+    logs: list[str] = []
+    pipe = _pipe(tmp_path, [_row("a" * 24)])       # 只有 a 需要重判
+    pipe.log = logs.append
+    stats = pipe.run(notes=[_note("a" * 24), _note("b" * 24)],
+                     skip_existing=True)
+    assert stats["ok"] == 1
+    assert stats["skipped"] == 1
+    assert any("会重试" in m for m in logs)

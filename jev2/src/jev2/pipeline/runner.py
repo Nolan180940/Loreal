@@ -232,7 +232,11 @@ class Pipeline:
 
         done = self.store.existing_ids() if skip_existing else set()
         if skip_existing:
-            self.log(f"已有 {len(done)} 篇结果，将跳过")
+            n_all = len(self.store.existing_ids(retry_semantic_failed=False))
+            retry = n_all - len(done)
+            self.log(f"已有 {len(done)} 篇有效结果，将跳过"
+                     + (f"；另有 {retry} 篇上次语义层失败，会重试"
+                        if retry else ""))
 
         meta = self.store.meta or RunMeta.create(
             config_hash=config_hash(self.cfg),
