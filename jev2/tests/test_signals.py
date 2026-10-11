@@ -23,8 +23,9 @@ for _p in (_HERE.parents[1] / "src",                    # <repo>/jev2/src
         sys.path.insert(0, str(_p))
 
 from jev2.core.types import CommentRow, NoteRecord, SignalResult  # noqa: E402
-from jev2.signals import (ALL_SIGNALS, SIGNALS, SignalContext,    # noqa: E402
-                          SignalSet, signal_groups)
+from jev2.signals import (ACTIVE_SIGNALS, ALL_SIGNALS,            # noqa: E402
+                          INACTIVE_BY_DEFAULT, SIGNALS,
+                          SignalContext, SignalSet, signal_groups)
 from jev2.signals import _lib                                     # noqa: E402
 
 
@@ -279,6 +280,94 @@ def test_comment_like_rate_works_when_some_nonzero() -> None:
     r = run("comment_like_rate", mk_note(comments=cs))
     assert not r.missing
     assert r.value == pytest.approx(0.0)      # 非零率 50% ≫ 20%，不风险
+
+
+# --------------------------------------------------------------- 新信号（第二轮转正）
+
+def test_tag_count_direction_more_is_riskier() -> None:
+    """标签堆砌 —— 第二轮实测 AUC 0.778（vs high+medium），medium 类最强。"""
+    few = mk_note(tags=tuple(f"t{i}" for i in range(3)))
+    many = mk_note(tags=tuple(f"t{i}" for i in range(12)))
+    assert run("tag_count", many).value > run("tag_count", few).value
+    assert run("tag_count", few).value == 0.0          # 3 个标签不产生风险
+    assert run("tag_count", many).value == pytest.approx(1.0)
+
+
+def test_tag_count_boundary() -> None:
+    """5 个标签（正常上界）不产生风险；6 个开始上升。"""
+    n5 = mk_note(tags=tuple(f"t{i}" for i in range(5)))
+    n6 = mk_note(tags=tuple(f"t{i}" for i in range(6)))
+    assert run("tag_count", n5).value == 0.0
+    assert run("tag_count", n6).value > 0.0
+
+
+def test_structure_markers_direction_more_is_riskier() -> None:
+    """模板排版 —— 实测 AUC 0.725。"""
+    plain = run("structure_markers",
+                mk_note(desc="今天用了这个面霜，感觉还可以。" * 5))
+    templ = run("structure_markers", mk_note(desc=(
+        "✅优点：保湿\n❌缺点：搓泥\n1️⃣第一步\n2️⃣第二步\n"
+        "💡小提示\n⚠️注意\n" * 2)))
+    assert templ.value > plain.value
+    assert plain.value == 0.0
+
+
+def test_structure_markers_capped() -> None:
+    """上限 0.7 —— 真实测评也用 ✅/❌，不该单独定性。"""
+    r = run("structure_markers", mk_note(desc="✅❌1️⃣2️⃣💡⚠️▪️①" * 3))
+    assert r.value <= 0.7
+
+
+def test_cta_lexicon_direction_more_is_riskier() -> None:
+    """引导词表 —— is_cta 的确定性版本，实测 AUC 0.697。"""
+    soft = run("cta_lexicon",
+               mk_note(desc="说说我的使用感受，仅供参考。" * 5))
+    hard = run("cta_lexicon", mk_note(desc=(
+        "私信我领取优惠券，先到先得，限时掉落，点击购买。" * 3)))
+    assert hard.value > soft.value
+    assert soft.value == 0.0
+
+
+def test_cta_lexicon_counts_tags() -> None:
+    """标签也算文本（活动帖会把引导词写进标签）。"""
+    n = mk_note(desc="普通正文" * 10,
+                tags=("惊喜盒子", "先到先得", "限时掉落"))
+    assert run("cta_lexicon", n).value > 0.0
+
+
+# --------------------------------------------------------------- 默认禁用机制
+
+def test_nickname_dup_rate_inactive_by_default() -> None:
+    """回归：``nickname_dup_rate`` 实测 AUC=0.259（**反向**）——
+    它测的是「默认昵称流行度」而非刷评，必须默认禁用。
+
+    依据：官方帖评论者全是唯一昵称（真人来领奖品），
+    个人帖反而多 momo。详见 docs/JEV2_EVALUATION.md 第三节。
+    """
+    from jev2.signals import ACTIVE_SIGNALS, INACTIVE_BY_DEFAULT
+
+    assert "nickname_dup_rate" in INACTIVE_BY_DEFAULT
+    assert "nickname_dup_rate" not in ACTIVE_SIGNALS
+    assert "nickname_dup_rate" in ALL_SIGNALS          # 实现保留
+
+    ss = SignalSet(ctx=CTX)
+    assert "nickname_dup_rate" not in ss.names
+    assert "nickname_dup_rate" in ss.skipped_inactive
+
+
+def test_inactive_signal_runnable_when_explicit() -> None:
+    """显式列出名字时按字面执行 —— 便于复核历史判断。"""
+    ss = SignalSet(active=["nickname_dup_rate"], ctx=CTX)
+    assert "nickname_dup_rate" in ss.names
+
+
+def test_include_inactive_flag() -> None:
+    ss = SignalSet(ctx=CTX, include_inactive=True)
+    assert "nickname_dup_rate" in ss.names
+
+
+def test_skipped_inactive_empty_when_all_on() -> None:
+    assert SignalSet(ctx=CTX, include_inactive=True).skipped_inactive == ()
 
 
 def test_all_signals_bounded() -> None:

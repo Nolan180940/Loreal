@@ -53,6 +53,26 @@ PRICE_PER_MTOK_INPUT = 0.042
 #: 免费模型的 id —— 成本恒为 0（但有 429 限额）。
 FREE_MODELS = frozenset({"jev-1.13-free"})
 
+#: **不重试**的 HTTP 状态码 —— 请求本身有问题，重发多少次都一样。
+#:
+#: 白名单式设计（而不是 ``400 <= code < 500``）：4xx 里混着该重试的，
+#: 最典型的是 **451**。实测 451 的响应体是
+#: ``{"error":{"type":"server_error","message":
+#: "Upstream request failed: Endpoint is unavailable."}}`` ——
+#: 它是**上游临时不可用**，重试能恢复（实测等一会儿就通了），
+#: 但按 4xx 一刀切会被判成永久失败。
+#: 一次 40 篇跑下来 33 篇因此被标记「语义层失败」。
+_NO_RETRY_CODES = frozenset({
+    400,   # 请求格式错
+    401,   # 未授权（已有专门的 AuthError）
+    403,   # 禁止（已有 1010 特判）
+    404,   # 端点不存在
+    405,   # 方法不对
+    406,   # 不接受
+    413,   # 太大
+    422,   # 语义错误
+})
+
 
 class JevProvider:
     """jev-1.13 客户端。
@@ -148,7 +168,18 @@ class JevProvider:
                         "HTTP 403 code 1010 = Cloudflare 拦 UA。"
                         "请确认 BROWSER_UA 未被覆盖。"
                     ) from e
-                if 400 <= e.code < 500:
+                # ⚠️ 这里**只对明确的客户端错误**放弃重试。
+                #
+                # 曾经写成 ``if 400 <= e.code < 500: raise`` —— 那会把
+                # **451 也当成客户端错误**。而实测 451 的响应体是
+                # ``{"error":{"type":"server_error","message":
+                # "Upstream request failed: Endpoint is unavailable."}}``
+                # 即**上游服务临时不可用**，属于该重试的范畴。
+                # 一次 40 篇跑下来 33 篇因它被判成「语义层失败」。
+                #
+                # 现在改成白名单：只有这些码代表「请求本身有问题」，
+                # 其余（含 451 / 408 / 5xx）都退避重试。
+                if e.code in _NO_RETRY_CODES:
                     raise ProviderError(f"HTTP {e.code}: {detail}") from e
             except (urllib.error.URLError, TimeoutError, OSError) as e:
                 last = ProviderError(f"{type(e).__name__}: {e}")

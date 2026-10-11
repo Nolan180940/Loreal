@@ -26,7 +26,8 @@ from __future__ import annotations
 import importlib
 import pkgutil
 
-from .base import SIGNALS, SignalContext, SignalSet, signal, signal_groups
+from .base import (INACTIVE_BY_DEFAULT, SIGNALS, SignalContext, SignalSet,
+                   signal, signal_groups)
 from ._lib import (
     band_risk, clamp01, entropy, iqr, lens_of, mean, median,
     normalized_entropy, quantile, safe_div, saturate, sd, top1_ratio,
@@ -50,12 +51,17 @@ def _discover() -> tuple[str, ...]:
 #: 被自动加载的信号模块名（调试用：能看出哪些文件被跳过了）
 LOADED_MODULES = _discover()
 
-#: 全部已注册的信号名
+#: 全部已注册的信号名（含默认禁用的）
 ALL_SIGNALS = SIGNALS.names()
 
+#: 默认参与计算的信号名（``ALL_SIGNALS`` 去掉 ``INACTIVE_BY_DEFAULT``）
+ACTIVE_SIGNALS = tuple(n for n in ALL_SIGNALS
+                       if n not in INACTIVE_BY_DEFAULT)
+
 __all__ = [
-    "SIGNALS", "SignalContext", "SignalSet", "signal", "signal_groups",
-    "ALL_SIGNALS", "LOADED_MODULES",
+    "SIGNALS", "INACTIVE_BY_DEFAULT", "SignalContext", "SignalSet",
+    "signal", "signal_groups",
+    "ALL_SIGNALS", "ACTIVE_SIGNALS", "LOADED_MODULES",
     # 数学工具（信号文件从 _lib 直接 import，这里再导出方便外部复用）
     "safe_div", "mean", "sd", "quantile", "iqr", "median",
     "entropy", "normalized_entropy", "top1_ratio",

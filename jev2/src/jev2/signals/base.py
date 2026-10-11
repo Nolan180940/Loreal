@@ -32,6 +32,21 @@ from ..core.types import NoteRecord, SignalResult
 #: 全局信号注册表。名字冲突会立刻报错（见 Registry.register）。
 SIGNALS: Registry[SignalFn] = Registry("signal")
 
+#: **实测无效/反向、默认不参与计算**的信号。
+#:
+#: 为什么用「默认禁用」而不是直接删文件：
+#: 1. 换数据源后可能变有用（如 IP 信号需要 50+ 条评论，现在只有 5 条）
+#: 2. 报告里仍能看到它们的值，便于复核当初的判断
+#: 3. 删除会让「当初为什么不用它」这段历史消失
+#:
+#: ⚠️ 往这里加名字时，必须在那个信号文件的 docstring 里写明**实测依据**。
+INACTIVE_BY_DEFAULT: frozenset[str] = frozenset({
+    # AUC=0.259（反向）：官方帖评论者全是唯一昵称（真人领奖），
+    # 个人帖反而多 momo 默认昵称 —— 它测的是「默认昵称流行度」。
+    # 依据：docs/JEV2_EVALUATION.md 第三节。
+    "nickname_dup_rate",
+})
+
 
 @dataclass(frozen=True)
 class SignalContext:
@@ -67,13 +82,40 @@ class SignalSet:
     """对一篇笔记跑一组信号。"""
 
     def __init__(self, *, active: list[str] | None = None,
-                 ctx: SignalContext | None = None) -> None:
-        self._fns = SIGNALS.select(active)
+                 ctx: SignalContext | None = None,
+                 include_inactive: bool = False) -> None:
+        """
+        Parameters
+        ----------
+        active
+            ``None`` / 空 = 除 ``INACTIVE_BY_DEFAULT`` 之外的全部。
+            显式列出名字时**按字面执行** —— 即使列了被默认禁用的信号，
+            也会跑（便于复现与复核）。
+        include_inactive
+            强制把默认禁用的也纳入（跑诊断脚本时用）。
+        """
+        selected = SIGNALS.select(active)
+        if active:
+            # 显式指定 → 字面执行，不做过滤
+            self._fns = selected
+        elif include_inactive:
+            self._fns = selected
+        else:
+            self._fns = {k: v for k, v in selected.items()
+                         if k not in INACTIVE_BY_DEFAULT}
         self._ctx = ctx or SignalContext()
 
     @property
     def names(self) -> tuple[str, ...]:
         return tuple(self._fns)
+
+    @property
+    def skipped_inactive(self) -> tuple[str, ...]:
+        """被默认禁用而没跑的（报告里可展示）。"""
+        if self._fns.keys() >= set(SIGNALS.names()):
+            return ()
+        return tuple(n for n in SIGNALS.names()
+                     if n not in self._fns and n in INACTIVE_BY_DEFAULT)
 
     def compute(self, record: NoteRecord) -> dict[str, SignalResult]:
         """跑全部信号，返回 ``{名字: 结果}``。
@@ -100,5 +142,5 @@ def signal_groups() -> dict[str, tuple[str, ...]]:
     return {g: tuple(sorted(ns)) for g, ns in sorted(groups.items())}
 
 
-__all__ = ["SIGNALS", "SignalContext", "SignalFn", "SignalSet",
-           "signal", "signal_groups"]
+__all__ = ["SIGNALS", "INACTIVE_BY_DEFAULT", "SignalContext", "SignalFn",
+           "SignalSet", "signal", "signal_groups"]

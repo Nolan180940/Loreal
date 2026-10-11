@@ -190,3 +190,50 @@ def test_criteria_order_is_risk_gradient() -> None:
 def test_specs_for_empty_means_all() -> None:
     assert len(Q.specs_for([])) == len(Q.QUESTIONS)
     assert Q.specs_for(["is_ad"]) == {"is_ad": Q.QUESTIONS.get("is_ad")}
+
+
+# ------------------------------------------------------- 可重试状态码白名单
+
+def test_451_is_retryable() -> None:
+    """回归：451 曾被当成客户端错误不重试。
+
+    实测响应体是 ``{"error":{"type":"server_error","message":
+    "Upstream request failed: Endpoint is unavailable."}}`` ——
+    上游临时不可用，该重试（等一会儿确实能通）。
+    一次 40 篇跑下来 33 篇因此被标成「语义层失败」。
+    """
+    from jev2.semantic.provider import _NO_RETRY_CODES
+
+    assert 451 not in _NO_RETRY_CODES
+    assert 408 not in _NO_RETRY_CODES        # 请求超时
+    assert 500 not in _NO_RETRY_CODES
+    assert 502 not in _NO_RETRY_CODES
+    assert 503 not in _NO_RETRY_CODES
+    assert 504 not in _NO_RETRY_CODES
+
+
+def test_clear_client_errors_are_not_retried() -> None:
+    """真正的客户端错误仍要立即失败（重试无意义，浪费时间）。"""
+    from jev2.semantic.provider import _NO_RETRY_CODES
+
+    for code in (400, 404, 405, 406, 413, 422):
+        assert code in _NO_RETRY_CODES
+
+
+def test_classify_401_403_are_auth() -> None:
+    """401/403 走 AuthError 分支（批处理要立刻停）。"""
+    from jev2.core.errors import AuthError
+    from jev2.semantic.provider import JevProvider
+
+    assert isinstance(JevProvider._classify(401, "nope"), AuthError)
+    assert isinstance(JevProvider._classify(403, "nope"), AuthError)
+
+
+def test_classify_429_is_rate_limit() -> None:
+    from jev2.core.errors import RateLimitError
+    from jev2.semantic.provider import JevProvider
+
+    err = JevProvider._classify(
+        429, '{"error":{"retry_after":3}}')
+    assert isinstance(err, RateLimitError)
+    assert err.retry_after == 3
