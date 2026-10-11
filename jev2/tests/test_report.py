@@ -62,8 +62,12 @@ def _note(nid: str = NID, title: str = "后悔没早知道") -> NoteRecord:
 
 def _row(nid: str = NID, *, total: float = 0.7645,
          level: Level = Level.HIGH, vetoed: str = "",
-         semantic_fail: bool = False) -> dict:
-    """直接产出 scores.jsonl 形态的 row。"""
+         semantic_fail: bool = False,
+         model: str = "jev-1.13") -> dict:
+    """直接产出 scores.jsonl 形态的 row。
+
+    ``model=""`` 模拟 ``--no-semantic``（没跑语义层）。
+    """
     v = Verdict(
         note_id=nid, total=total, level=level,
         dimensions=(
@@ -84,7 +88,7 @@ def _row(nid: str = NID, *, total: float = 0.7645,
         ),
         vetoed_by=vetoed,
     )
-    meta = RunMeta.create(config_hash="efe851c89c90", model="jev-1.13",
+    meta = RunMeta.create(config_hash="efe851c89c90", model=model,
                           rule_set="default")
     return JudgeResult(note_id=nid, verdict=v,
                        semantic_ok=not semantic_fail,
@@ -140,6 +144,16 @@ def test_note_detail_renders_trace_rows() -> None:
     md = render_note_detail(_row(), title="x")
     assert "ad_gate" in md and "is_ad" in md
     assert "contribute" in md
+
+
+def test_note_detail_warns_when_semantic_not_run() -> None:
+    """未跑语义层要和「语义层失败」分开报 —— 原因不同，处置也不同。"""
+    md = render_note_detail(_row(total=0.0, level=Level.LOW, model=""),
+                            title="x")
+    assert "未跑语义层" in md
+    assert "不构成判定结果" in md
+    assert "语义层失败" not in md          # 不是失败，是没跑
+    assert "未跑语义层" not in render_note_detail(_row(), title="x")
 
 
 def test_note_detail_survives_empty_row() -> None:
@@ -238,6 +252,15 @@ def test_note_console_one_line() -> None:
 
 def test_note_console_warns_on_semantic_failure() -> None:
     assert "语义" in render_note_console(_row(semantic_fail=True))
+
+
+def test_note_console_warns_when_semantic_not_run() -> None:
+    """``--no-semantic`` 的 0.000 不能被读成「内容干净」。"""
+    line = render_note_console(_row(total=0.0, level=Level.LOW, model=""))
+    assert "未跑语义层" in line
+    assert "不构成判定" in line
+    # 正常跑过的篇不该出现这个提示
+    assert "未跑语义层" not in render_note_console(_row())
 
 
 def test_note_console_shows_veto() -> None:
@@ -424,3 +447,38 @@ def test_semantic_failed_rows_get_retried_end_to_end(tmp_path: Path) -> None:
     assert stats["ok"] == 1
     assert stats["skipped"] == 1
     assert any("会重试" in m for m in logs)
+
+
+def test_no_semantic_rows_are_not_treated_as_done(tmp_path: Path) -> None:
+    """``--no-semantic`` 的结果不能算「已判过」。
+
+    那些行 ``semantic_ok`` 是 True（没调模型，所以没失败），
+    但分数里没有语义维度 —— 一旦被当成「已有结果」，
+    一次调试就会把真实判定**永久**覆盖掉。
+    """
+    from jev2.pipeline.store import ResultStore
+
+    store = ResultStore(tmp_path)
+    store.upsert_many([_row("a" * 24, total=0.0, level=Level.LOW, model=""),
+                       _row("b" * 24)])
+    assert store.existing_ids() == {"b" * 24}
+    assert store.existing_ids(retry_semantic_failed=False) == {
+        "a" * 24, "b" * 24}
+
+
+def test_rows_without_model_key_are_not_retried(tmp_path: Path) -> None:
+    """旧版产物（**没有** ``model`` 键）不该被误判成「需要重跑」。
+
+    误判成「没判过」的代价是重新花钱调模型，不可逆；误判成「判过」
+    只是沿用旧结果，下次还能补。所以缺字段时保守跳过 ——
+    只有**明确**知道是 ``--no-semantic``（键存在但为空）才重跑。
+    """
+    from jev2.pipeline.store import ResultStore
+
+    store = ResultStore(tmp_path)
+    store.upsert_many([
+        {"note_id": "a" * 24, "total": 0.5, "level": "medium"},   # 旧版：无键
+        {"note_id": "b" * 24, "total": 0.1, "level": "low",
+         "model": ""},                                            # 明确没跑
+    ])
+    assert store.existing_ids() == {"a" * 24}

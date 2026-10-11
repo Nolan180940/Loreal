@@ -27,6 +27,26 @@ class DataError(JevError):
     """数据缺失或格式错误。可跳过单篇继续跑。"""
 
 
+class CollectError(JevError):
+    """采集失败（链接不支持 / 网络 / 反爬 / 落盘）。
+
+    与 :class:`DataError` 的区别：
+
+    - ``DataError``   数据**已经有**但坏了 → 跳过这一篇继续
+    - ``CollectError``数据**还没拿到** → 得先解决链接或采集器
+
+    混同会让「短链过期」在批处理里显示成「这一篇数据有问题」。
+
+    ``code`` 沿用采集器的退出码（2 链接 / 3 抓取 / 4 落盘），
+    整条链路语义一致 —— 调用方（脚本、服务）能区分
+    「链接不对，重试没用」和「抓取失败，可以重试」。
+    """
+
+    def __init__(self, message: str, code: int = 0) -> None:
+        super().__init__(message)
+        self.code = code
+
+
 class ProviderError(JevError):
     """模型调用失败（网络/服务端/协议）。"""
 
@@ -44,6 +64,6 @@ class RateLimitError(ProviderError):
 
 
 __all__ = [
-    "JevError", "ConfigError", "DataError",
+    "JevError", "ConfigError", "DataError", "CollectError",
     "ProviderError", "AuthError", "RateLimitError",
 ]

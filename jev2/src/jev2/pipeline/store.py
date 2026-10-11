@@ -89,21 +89,45 @@ class ResultStore:
                 bad.append(f"第 {i} 行: {exc}")
         return rows, bad
 
+    @staticmethod
+    def _counts_as_verdict(row: dict[str, Any]) -> bool:
+        """这一行算不算「已经判过」。
+
+        ====================  ==========================================
+        ``semantic_ok=false`` 不算 —— 模型调用失败，只有统计分
+        ``model`` 存在但为空  不算 —— ``--no-semantic`` 跑的，没有语义维度
+        **缺** ``model`` 键    算   —— 旧版产物；无从判断，保守跳过
+        ====================  ==========================================
+
+        第三种刻意保守：缺字段时**不重跑**。因为误判成「没判过」的代价
+        是重新花钱调模型，而误判成「判过」只是沿用旧结果 ——
+        前者不可逆，后者下次还能补。
+        """
+        if row.get("semantic_ok") is False:
+            return False
+        if "model" in row and not row.get("model"):
+            return False
+        return True
+
     def existing_ids(self, *,
                      retry_semantic_failed: bool = True) -> set[str]:
         """已有结果的 ``note_id``。
 
-        ``semantic_ok=false`` 的篇**默认不算「已有」**。
-        那些行是模型调用失败留下的（只含统计信号的 0 分），
-        跳过它们等于把一次上游 451 故障永久固化进结果里 ——
-        重跑时本来就该重试。
+        默认只返回**真正的判定结果**（见 :meth:`_counts_as_verdict`）。
+        被排除的两种行会重跑，理由是它们都不是判定结果：
+
+        - ``semantic_ok=false``：一次上游 451 故障留下的 0 分。
+          跳过等于把故障永久固化进结果里。
+        - ``model=""``：一次 ``--no-semantic`` 调试跑出来的 0 分。
+          跳过等于把真实判定永久覆盖掉（而且 ``semantic_ok`` 还是 True，
+          光看那个字段发现不了）。
 
         ``retry_semantic_failed=False`` 用于「我就想跳过所有行」的场合。
         """
         return {r["note_id"] for r in self.load()
                 if r.get("note_id")
                 and (not retry_semantic_failed
-                     or r.get("semantic_ok") is not False)}
+                     or self._counts_as_verdict(r))}
 
     def iter_rows(self) -> Iterator[dict[str, Any]]:
         """流式读（大文件用）。"""

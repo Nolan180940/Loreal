@@ -32,6 +32,36 @@ $env:JEV2_API_KEY = "sk-..."
 
 ## Quick Start
 
+### 产品入口：给一个链接
+
+```powershell
+python -m jev2 intake "https://xhslink.cn/o/3O20COBNbS1"
+```
+
+一条命令跑完采集 → 判定 → 报告：
+
+```
+[1/3] 采集
+      xhs-cli parse https://xhslink.cn/o/3O20COBNbS1 --out D:\LOreal-ai\data --json
+      落盘 D:\LOreal-ai\data\69d8c8a6000000002301d991
+      69d8c8a6000000002301d991 · 上海微调升级美貌，这就是原生高智脸的魅力~ · 图 5/5 · 评论 13/100
+[2/3] 判定 · jev-1.13
+      [1/1] 69d8c8a6 1.000 高风险 veto:ad_gate
+[3/3] 报告
+      69d8c8a60000 1.000 高风险 | veto:ad_gate | 主因 is_ad=0.97 is_cta=0.70
+
+      [saved] D:\LOreal-ai\jev2\out\69d8c8a6000000002301d991\scores.json
+      [saved] D:\LOreal-ai\jev2\out\69d8c8a6000000002301d991\report.md
+```
+
+退出码：`0` 成功 · `2` 链接不被支持（**重试没用**）·
+`3` 抓取失败（可重试）· `4` 落盘失败 · `2` 采集器没装。
+
+> 采集器（`xhs-cli`）是**独立进程**：它挂了不会拖垮判定，
+> 换一个采集器也不用改判定层。见「采集与判定的分界」。
+
+### 手工链路：分步跑
+
 ```powershell
 # 1. 环境自检（key / 数据 / 模型连通 / 信号清单）
 python -m jev2 doctor
@@ -58,11 +88,25 @@ python -m jev2 judge --note 6ab6a30e
 | 命令 | 作用 | 调模型 |
 |---|---|---|
 | `doctor` | 环境自检 | 1 次探测 |
+| **`intake <链接>`** | **链接 → 采集 → 判定 → 报告** | ✅ |
 | `signals` | 只看统计信号 | ❌ |
 | `judge` | 完整判定 | ✅ |
 | `report` | 出报告 | ❌ |
 | `rules` | 列出规则集与权重 | ❌ |
 | `calibrate` | 阈值扫描（需标注文件） | ❌ |
+
+### `intake`
+
+| 参数 | 说明 |
+|---|---|
+| `link` | 小红书分享链接（短链 / 长链） |
+| `--no-images` | 不下载图片（判定不需要图，但人工复核需要） |
+| `--no-semantic` | 只用统计信号（不调模型、不需要 key）—— 见下方说明 |
+| `--timeout N` | 采集超时秒数（默认 180） |
+
+> `--no-semantic` 的分数**不构成判定结果**：融合权重全部来自语义维度
+> （见「融合权重全部来自语义维度」）。它只用来核对统计信号，
+> 跑出来的 0.000 不是「内容干净」。
 
 ### `signals`
 
@@ -78,7 +122,7 @@ python -m jev2 judge --note 6ab6a30e
 | `--note PREFIX` | 只跑某篇（默认开单篇产物） |
 | `--limit N` | 最多跑几篇 |
 | `--force` | 重跑已有结果的篇（默认跳过，省钱） |
-| `--no-semantic` | 只用统计信号，**不调模型、不需要 key** |
+| `--no-semantic` | 只用统计信号，**不调模型、不需要 key**（分数不构成判定结果） |
 | `--per-note` | 额外为**每篇**落 `out/<note_id>/{scores.json, report.md}` |
 | `--report` | 跑完出简报 |
 | `--report-path FILE` | 把 Markdown 报告写到该文件 |
@@ -117,6 +161,7 @@ jev2/src/jev2/
     types.py            NoteRecord / SignalResult / DimScore / Verdict
     errors.py           异常层级（不同异常不同处置）
     registry.py         通用注册表（信号与问题共用）
+  collect.py            ★ 进料：链接 → data/<note_id>/（子进程调 xhs-cli）
   loader.py             notes.json → NoteRecord（唯一认识数据结构的地方）
   signals/              ★ 一信号一文件，注册表自动发现
     base.py             @signal 装饰器 + SignalSet
@@ -139,7 +184,9 @@ jev2/src/jev2/
 
 ```mermaid
 graph LR
-    A["data/&lt;id&gt;/notes.json"] --> B[loader]
+    L["分享链接"] --> CO["collect.py<br/>（子进程调 xhs-cli）"]
+    CO --> A["data/&lt;id&gt;/<br/>notes.json + 图片"]
+    A --> B[loader]
     B --> C["signals/<br/>17 个信号<br/>（1 个默认禁用）"]
     B --> D["semantic/<br/>jev-1.13"]
     C --> E[fuse/engine]
@@ -154,6 +201,39 @@ graph LR
 ---
 
 ## 原理
+
+### 采集与判定的分界
+
+整条链路只有一个**进程边界**，就在采集器那里：
+
+```
+链接 ──[子进程]──> xhs-cli ──> data/<id>/ ──[同进程]──> jev2 判定
+```
+
+为什么采集要独立出去：
+
+| | 采集 | 判定 |
+|---|---|---|
+| 会怎么挂 | 短链过期、反爬、验证码、网络抖动 | 模型 451、key 失效、数据格式变了 |
+| 挂了怎么办 | 换链接 / 重试 | 看异常类型（跳过 / 中止 / 退避） |
+| 换实现成本 | 低（换个采集器即可） | 高（规则都在里面） |
+
+混在一个进程里就得写一套混合的异常处理；分开之后「采集崩了」直接变成
+一个退出码，处置方式立刻明确。代价是多一次进程启动（约 0.3s），
+和一份必须维护的 JSON 契约：
+
+```
+stdout  纯 JSON（可 json.loads）—— 顶层必须是 object，且含 note_id
+stderr  进度信息（人读的，可忽略）
+退出码  0 成功 · 2 链接不支持 · 3 抓取失败 · 4 落盘失败
+```
+
+这份契约是**实测**的（`--json` 的 stdout 无任何杂质前缀），jev2 会逐项检查。
+其中最难发现的一种失败是「采集器报成功、但文件没落盘」—— 不在这里拦住，
+就会带着一个不存在的路径一路走到 loader 才报错，那时已经看不出是采集的问题。
+
+`intake` 的退出码直接沿用采集器的（2 / 3 / 4），所以脚本能区分
+「链接不对，重试没用」和「抓取失败，可以重试」。
 
 ### 核心原则：引擎写一次，内容全部数据化
 
@@ -191,15 +271,41 @@ L1 语义维度  →  jev-1.13 判（花钱，但能读懂话）
 「0 风险」和「没法算」是两回事 —— 混同会让报告把「没数据」显示成「很干净」。
 融合时缺失的规则被跳过并记录，分母也相应扣掉。
 
+### 融合权重全部来自语义维度
+
+这是个容易被忽略、但决定了很多行为的事实：
+
+```
+has_risk      0.35
+exaggeration  0.30
+is_ad         0.25
+is_cta        0.10
+              ────
+              1.00   ← 全部是语义维度
+```
+
+17 个统计信号**一个都不直接计分**，它们只通过 `l2_stats` 规则以 `flag`
+动作被记录（`l2_mean`），供调阈值时参考。
+
+后果：**没跑语义层 = 没有分数**。所以 `--no-semantic` 跑出来的
+`0.000 低风险` 不是「内容干净」，而是「什么都没判」。
+
+这不是 bug（统计信号里 AUC 最高的 `comment_len_mean` 也才 0.809，
+单独用不足以判定），但它意味着 `--no-semantic` 的结果**不能覆盖**真实判定。
+所以：
+
+- 终端简报和单篇报告里都会打 ⚠️ 提示（「分数不构成判定结果」）
+- 那些行（`model=""`）不算「已有结果」，重跑时会重判
+
 ### 幂等与可追溯
 
 - `scores.jsonl` 按 `note_id` upsert，重跑不重复
 - 每行带 `run_id` / `config_hash` / `schema_version` ——
   改了阈值之后，新旧结果能区分（报告里会警告「混了 N 次运行」）
 - 每行的 `trace` 记录每条规则算出了什么、有没有跳过、贡献多少
-- **`semantic_ok=false` 的篇不算「已有结果」** —— 重跑时会自动重试。
-  否则一次上游故障就被永久固化进结果（那几篇永远只有统计分），
-  而 `--force` 是整批重新花钱，不该是唯一出路
+- **`semantic_ok=false` 和 `model=""` 的篇不算「已有结果」** ——
+  重跑时会自动重判。否则一次上游故障（或一次 `--no-semantic` 调试）
+  就被永久固化进结果，而 `--force` 是整批重新花钱，不该是唯一出路
 
 ### 上游挂了就别装作跑完了
 
@@ -479,7 +585,7 @@ top 维度保底），**全部不如单纯调阈值**，而且都会引入误杀
 ## 开发
 
 ```powershell
-# 195 个用例
+# 226 个用例
 D:\LOreal-ai\.venv\Scripts\python.exe -m pytest jev2/tests -q
 ```
 

@@ -5,6 +5,7 @@
 ::
 
     jev2 doctor                      环境自检（key / 数据 / 模型连通）
+    jev2 intake <链接>               一条命令：采集 → 判定 → 报告（产品入口）
     jev2 signals [--note ID]         只看统计信号，不调模型
     jev2 judge [--all|--note ID]     跑判定（信号 + 语义 + 融合）
     jev2 report [--top N]            从已有结果出报告
@@ -13,19 +14,20 @@
 
 设计原则：**每个子命令都能单独跑**。
 ``signals`` 不花钱（零模型调用），``report`` 不花钱（读已有结果），
-只有 ``judge`` 会调模型 —— 调阈值时可以反复跑前两个。
+只有 ``judge`` / ``intake`` 会调模型 —— 调阈值时可以反复跑前两个。
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import Any
 
 from . import __version__
 from .config import config_hash, load_config, mask, resolve_api_key
-from .core.errors import ConfigError, JevError
+from .core.errors import CollectError, ConfigError, JevError
 from .loader import load_all, load_note
 from .pipeline.store import ResultStore
 from .report import (render_console, render_markdown, render_note_console,
@@ -120,6 +122,83 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_intake(args: argparse.Namespace) -> int:
+    """``jev2 intake <链接>``：一条命令跑完整链路。
+
+    ::
+
+        链接 → 采集落盘 data/<id>/ → 判定 → out/<id>/{scores.json, report.md}
+
+    这是**产品入口** —— 其他子命令是给调试和批量用的。
+
+    分三步打印是为了失败时能一眼看出卡在哪：采集失败（链接/网络/反爬）
+    和判定失败（模型/数据）的处置完全不同，混在一起报错会误导。
+    """
+    from .collect import collect
+    from .pipeline import Pipeline, RunMeta
+
+    cfg = load_config(path=args.config, require_key=not args.no_semantic)
+    if args.no_semantic:
+        cfg.semantic.enabled = False
+
+    # ---- [1/3] 采集 ----
+    print("[1/3] 采集")
+    c = collect(args.link, cfg.paths.data_root,
+                images=not args.no_images,
+                timeout=args.timeout,
+                log=lambda s: print(f"      {s}", flush=True))
+    print(f"      {c.describe()}")
+
+    # ---- [2/3] 判定 ----
+    model = cfg.semantic.model if cfg.semantic.enabled else "未调模型（纯统计）"
+    print(f"[2/3] 判定 · {model}")
+    if not cfg.semantic.enabled:
+        # 不说清楚的话，下面那行 0.000 低风险会被读成「内容干净」。
+        print("      ⚠️ 未跑语义层 —— 融合权重全部来自语义维度，"
+              "所以这个分数不是判定结果")
+    meta = RunMeta.create(
+        config_hash=config_hash(cfg),
+        model=cfg.semantic.model if cfg.semantic.enabled else "",
+        rule_set=cfg.fuse.rule_set)
+    pipe = Pipeline(cfg, meta=meta,
+                    progress=lambda s: print(f"      {s}", flush=True))
+    try:
+        note = load_note(c.notes_json)
+        stats = pipe.run(notes=[note], skip_existing=False, per_note=True)
+    except JevError as exc:
+        print(f"[X] 判定失败: {exc}", file=sys.stderr)
+        return 3
+
+    if stats.get("aborted"):
+        print(f"[X] {stats['aborted']}", file=sys.stderr)
+        return 4
+    if not stats["ok"]:
+        print("[X] 这一篇没能判出结果", file=sys.stderr)
+        return 3
+
+    # ---- [3/3] 产物 ----
+    bundle = Path(cfg.paths.out_dir) / c.note_id
+    scores_json = bundle / "scores.json"
+    report_md = bundle / "report.md"
+
+    print("[3/3] 报告")
+    print(f"      {render_note_console(_read_row(scores_json))}")
+    print()
+    for p in (scores_json, report_md):
+        print(f"      {'[saved]' if p.is_file() else '[缺少]'} {p}")
+    return 0
+
+
+def _read_row(scores_json: Path) -> dict[str, Any]:
+    """读单篇 ``scores.json``。读不出来也返回空 dict —— 报告已落盘，
+    不该因为终端那一行摘要读不到就让整个命令失败。"""
+    try:
+        d = json.loads(Path(scores_json).read_text(encoding="utf-8"))
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
 def cmd_signals(args: argparse.Namespace) -> int:
     """只看统计信号 —— 零模型调用。"""
     cfg = load_config(path=args.config)
@@ -196,6 +275,8 @@ def cmd_judge(args: argparse.Namespace) -> int:
         return 3
 
     print()
+    if args.no_semantic:
+        print("⚠️ --no-semantic：分数不含语义维度，**不构成判定结果**")
     if stats.get("aborted"):
         print(f"[X] 整批中止：{stats['aborted']}")
     print(f"完成：{stats['ok']} 判 · {stats['skipped']} 跳过 · "
@@ -386,6 +467,17 @@ def build_parser() -> argparse.ArgumentParser:
     p = ps.add_parser("doctor", help="环境自检")
     p.set_defaults(func=cmd_doctor)
 
+    p = ps.add_parser("intake",
+                      help="一条命令：链接 → 采集 → 判定 → 报告")
+    p.add_argument("link", help="小红书分享链接（短链/长链）")
+    p.add_argument("--no-images", action="store_true",
+                   help="不下载图片（判定不需要图，但人工复核需要）")
+    p.add_argument("--no-semantic", action="store_true",
+                   help="只用统计信号（不调模型、不需要 key）")
+    p.add_argument("--timeout", type=int, default=180,
+                   help="采集超时秒数（默认 180）")
+    p.set_defaults(func=cmd_intake)
+
     p = ps.add_parser("signals", help="只看统计信号（不调模型）")
     p.add_argument("--note", help="只跑某篇（note_id 前缀）")
     p.add_argument("--out", help="输出文件（默认打到终端）")
@@ -431,6 +523,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     try:
         return int(args.func(args) or 0)
+    except CollectError as exc:
+        # 采集失败沿用采集器的退出码（2 链接 / 3 抓取 / 4 落盘）——
+        # 脚本要能区分「重试没用」和「可以重试」。
+        print(f"[X] {exc}", file=sys.stderr)
+        return exc.code or 3
     except ConfigError as exc:
         print(f"[X] 配置错误: {exc}", file=sys.stderr)
         return 2
